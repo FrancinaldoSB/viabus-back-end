@@ -1,14 +1,12 @@
 {
-  "name": "hono",
+  "name": ".",
   "scripts": {
-    "start": "vercel dev",
-    "deploy": "vercel"
+    "dev": "bun run --hot src/index.ts"
   },
   "dependencies": {
-    "hono": "^4.5.4",
-    "next": "^14.2.5"
+    "hono": "^4.5.4"
   },
   "devDependencies": {
-    "vercel": "^32.4.1"
+    "@types/bun": "latest"
   }
 }
