@@ -1,11 +1,17 @@
 {
   "name": "viabus",
   "scripts": {
+    "prisma": "bunx prisma generate",
     "dev": "bun run --hot src/index.ts",
-    "start": "bun run src/index.ts"
+    "build": "bun install && bun run prisma",
+    "deploy": "bun run src/index.ts",
+    "migrate": "bunx prisma migrate dev",
+    "generate": "bunx prisma generate"
   },
   "dependencies": {
-    "hono": "^4.5.4"
+    "@prisma/client": "^5.18.0",
+    "hono": "^4.5.4",
+    "prisma": "^5.18.0"
   },
   "devDependencies": {
     "@types/bun": "latest"

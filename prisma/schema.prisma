@@ -1,0 +1,145 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Customer {
+  id    Int       @id @default(autoincrement())
+  cpf   String    @unique @db.Char(11)
+  name  String
+
+  addresses  Address[]
+  tickets    Ticket[]
+  telephones Telephone[]
+}
+
+model Address {
+  id           Int    @id @default(autoincrement())
+  customer_id  Int
+  street       String
+  number       Int
+  complement   String?
+  neighborhood String
+  city         String
+  state        String
+  cep          String
+
+  customer Customer @relation(fields: [customer_id], references: [id], onDelete: Cascade)
+}
+
+model Ticket {
+  id               Int     @id @default(autoincrement())
+  customer_id      Int
+  boarding_stop_id Int
+  arrival_stop_id  Int
+  status           String
+  additional_notes String?
+  date             DateTime @db.Date
+
+  customer      Customer @relation(fields: [customer_id], references: [id], onDelete: Cascade)
+  boardingStop  Stop     @relation("BoardingStop", fields: [boarding_stop_id], references: [id], onDelete: Cascade)
+  arrivalStop   Stop     @relation("ArrivalStop", fields: [arrival_stop_id], references: [id], onDelete: Cascade)
+  payments      Payment[]
+  tripPassenger TripPassenger[]
+}
+
+model Payment {
+  id        Int      @id @default(autoincrement())
+  ticket_id Int
+  amount    Float
+  method    String
+  date      DateTime @db.Date
+
+  ticket Ticket @relation(fields: [ticket_id], references: [id], onDelete: Cascade)
+}
+
+model Route {
+  id                  Int    @id @default(autoincrement())
+  starting_city_id    Int
+  destination_city_id Int
+  total_distance      Int
+  total_duration      String
+
+  startingCity    City   @relation("StartingCity", fields: [starting_city_id], references: [id], onDelete: Cascade)
+  destinationCity City   @relation("DestinationCity", fields: [destination_city_id], references: [id], onDelete: Cascade)
+  routeStops      RouteStop[]
+  trips           Trip[] 
+}
+
+model Driver {
+  id    Int     @id @default(autoincrement())
+  name  String
+  phone String
+  trips  Trip[]
+}
+
+model Telephone {
+  id           Int    @id @default(autoincrement())
+  customer_id  Int
+  phone_number String
+
+  customer Customer @relation(fields: [customer_id], references: [id], onDelete: Cascade)
+}
+
+model Stop {
+  id      Int    @id @default(autoincrement())
+  city_id Int
+  name    String
+
+  city          City   @relation(fields: [city_id], references: [id], onDelete: Cascade)
+  boardingTickets Ticket[] @relation("BoardingStop")
+  arrivalTickets Ticket[]  @relation("ArrivalStop")
+  routeStops    RouteStop[]
+}
+
+model City {
+  id   Int    @id @default(autoincrement())
+  name String
+
+  stops  Stop[]
+  routesStarting Route[] @relation("StartingCity")
+  routesDestination Route[] @relation("DestinationCity")
+}
+
+model RouteStop {
+  id             Int      @id @default(autoincrement())
+  route_id       Int
+  stop_id        Int
+  stop_order     Int
+  boarding_time  DateTime @db.Time
+  departure_time DateTime @db.Time
+
+  route Route @relation(fields: [route_id], references: [id], onDelete: Cascade)
+  stop  Stop  @relation(fields: [stop_id], references: [id], onDelete: Cascade)
+}
+
+model Trip {
+  id        Int      @id @default(autoincrement())
+  route_id  Int
+  driver_id Int
+  trip_date DateTime @db.Date
+  status    String   @default("planned")
+
+  route      Route        @relation(fields: [route_id], references: [id], onDelete: Cascade)
+  driver     Driver       @relation(fields: [driver_id], references: [id], onDelete: Cascade)
+  passengers TripPassenger[]
+}
+
+model TripPassenger {
+  id       Int   @id @default(autoincrement())
+  trip_id  Int
+  ticket_id Int
+
+  trip   Trip   @relation(fields: [trip_id], references: [id], onDelete: Cascade)
+  ticket Ticket @relation(fields: [ticket_id], references: [id], onDelete: Cascade)
+}
