@@ -13,133 +13,175 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Customer {
-  id    Int       @id @default(autoincrement())
-  cpf   String    @unique @db.Char(11)
-  name  String
+// checked
+model User {
+  id         Int          @id @default(autoincrement())
+  cpf        String?      @db.Char(11) @unique
+  provider_id String      @db.Uuid
+  name       String       @db.Char(100)
+  email      String       @db.Char(100) @unique
+  photo_url  String?      @db.Char(255)
+  created_at DateTime     @default(now()) @db.Timestamp(6)
 
   addresses  Address[]
   tickets    Ticket[]
   telephones Telephone[]
+  role       UserRole[]
+  trips      Trip[]
 }
 
+// checked
 model Address {
-  id           Int    @id @default(autoincrement())
-  customer_id  Int
+  id           Int      @id @default(autoincrement())
+  user_id      Int
   street       String
   number       Int
   complement   String?
   neighborhood String
-  city         String
+  city_name    String
   state        String
   cep          String
 
-  customer Customer @relation(fields: [customer_id], references: [id], onDelete: Cascade)
-}
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+} 
 
+// checked
 model Ticket {
-  id               Int     @id @default(autoincrement())
-  customer_id      Int
+  id               Int      @id @default(autoincrement())
+  user_id          Int
+  trip_id          Int
   boarding_stop_id Int
   arrival_stop_id  Int
   status           String
   additional_notes String?
-  date             DateTime @db.Date
+  created_at       DateTime @default(now()) @db.Timestamp(6)
 
-  customer      Customer @relation(fields: [customer_id], references: [id], onDelete: Cascade)
-  boardingStop  Stop     @relation("BoardingStop", fields: [boarding_stop_id], references: [id], onDelete: Cascade)
-  arrivalStop   Stop     @relation("ArrivalStop", fields: [arrival_stop_id], references: [id], onDelete: Cascade)
-  payments      Payment[]
-  tripPassenger TripPassenger[]
+  user         User  @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  trip         Trip  @relation(fields: [trip_id], references: [id], onDelete: Cascade)
+  boardingStop Stop  @relation("BoardingStop", fields: [boarding_stop_id], references: [id], onDelete: Cascade)
+  arrivalStop  Stop  @relation("ArrivalStop", fields: [arrival_stop_id], references: [id], onDelete: Cascade)
+  payments     Payment[]
 }
 
+// checked
 model Payment {
   id        Int      @id @default(autoincrement())
   ticket_id Int
   amount    Float
   method    String
-  date      DateTime @db.Date
+  created_at DateTime @default(now()) @db.Timestamp(6)
 
   ticket Ticket @relation(fields: [ticket_id], references: [id], onDelete: Cascade)
 }
 
+// checked
+model Telephone {
+  id           Int      @id @default(autoincrement())
+  user_id      Int
+  phone_number String   @db.Char(50)
+
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+}
+
+// checked
+model Stop {
+  id            Int       @id @default(autoincrement())
+  city_id       Int
+  name          String    @db.Char(100)
+  boarding_time DateTime  @db.Time
+
+  boardingTickets Ticket[] @relation("BoardingStop") // Embarque
+  arrivalTickets  Ticket[] @relation("ArrivalStop") // Desembarque
+  originPrices    RoutePrice[] @relation("OriginStop") // Lista com todos os preços de origem para outras cidades
+  destinationPrices RoutePrice[] @relation("DestinationStop") // Lista com todos os preços de destino para outras cidades
+  routeStops      RouteStop[]
+  stopAddresses   StopAddress[]
+  
+}
+
+// checked
+model StopAddress {
+  id            Int    @id @default(autoincrement())
+  stop_id       Int
+  street        String
+  number        Int
+  complement    String?
+  neighborhood  String
+  city_name     String
+  state         String
+  cep           Int
+
+  stop Stop @relation(fields: [stop_id], references: [id], onDelete: Cascade)
+}
+
+// checked
 model Route {
-  id                  Int    @id @default(autoincrement())
-  starting_city_id    Int
-  destination_city_id Int
+  id                  Int          @id @default(autoincrement())
+  name                String
   total_distance      Int
   total_duration      String
 
-  startingCity    City   @relation("StartingCity", fields: [starting_city_id], references: [id], onDelete: Cascade)
-  destinationCity City   @relation("DestinationCity", fields: [destination_city_id], references: [id], onDelete: Cascade)
-  routeStops      RouteStop[]
-  trips           Trip[] 
+  routeStops          RouteStop[]
+  trips               Trip[]
+  routeSchedules      RouteSchedule[]
+  routePrices         RoutePrice[]
 }
 
-model Driver {
-  id    Int     @id @default(autoincrement())
-  name  String
-  phone String
-  trips  Trip[]
+// checked
+model RoutePrice {
+  id                 Int      @id @default(autoincrement())
+  route_id           Int
+  origin_stop_id     Int
+  destination_stop_id Int
+  price              Float
+
+  route              Route    @relation(fields: [route_id], references: [id], onDelete: Cascade)
+  originStop         Stop     @relation("OriginStop", fields: [origin_stop_id], references: [id], onDelete: Cascade)
+  destinationStop    Stop     @relation("DestinationStop", fields: [destination_stop_id], references: [id], onDelete: Cascade)
+
+  @@unique([route_id, origin_stop_id, destination_stop_id]) // Garantir que não haja duplicação
 }
 
-model Telephone {
-  id           Int    @id @default(autoincrement())
-  customer_id  Int
-  phone_number String
-
-  customer Customer @relation(fields: [customer_id], references: [id], onDelete: Cascade)
-}
-
-model Stop {
-  id      Int    @id @default(autoincrement())
-  city_id Int
-  name    String
-
-  city          City   @relation(fields: [city_id], references: [id], onDelete: Cascade)
-  boardingTickets Ticket[] @relation("BoardingStop")
-  arrivalTickets Ticket[]  @relation("ArrivalStop")
-  routeStops    RouteStop[]
-}
-
-model City {
-  id   Int    @id @default(autoincrement())
-  name String
-
-  stops  Stop[]
-  routesStarting Route[] @relation("StartingCity")
-  routesDestination Route[] @relation("DestinationCity")
-}
-
+// checked
 model RouteStop {
   id             Int      @id @default(autoincrement())
   route_id       Int
   stop_id        Int
   stop_order     Int
-  boarding_time  DateTime @db.Time
-  departure_time DateTime @db.Time
 
   route Route @relation(fields: [route_id], references: [id], onDelete: Cascade)
   stop  Stop  @relation(fields: [stop_id], references: [id], onDelete: Cascade)
 }
 
+// checked
+model RouteSchedule {
+  id             Int      @id @default(autoincrement())
+  route_id       Int
+  day_of_week    Int
+  active         Boolean  @default(true)
+
+  route Route @relation(fields: [route_id], references: [id], onDelete: Cascade)
+}
+
+// checked
 model Trip {
   id        Int      @id @default(autoincrement())
   route_id  Int
   driver_id Int
-  trip_date DateTime @db.Date
+  start_date DateTime @db.Date
+  end_date   DateTime?
   status    String   @default("planned")
 
   route      Route        @relation(fields: [route_id], references: [id], onDelete: Cascade)
-  driver     Driver       @relation(fields: [driver_id], references: [id], onDelete: Cascade)
-  passengers TripPassenger[]
+  driver     User         @relation(fields: [driver_id], references: [id], onDelete: Cascade)
+  tickets    Ticket[]     // Relação um-para-muitos com Ticket
 }
 
-model TripPassenger {
-  id       Int   @id @default(autoincrement())
-  trip_id  Int
-  ticket_id Int
+// checked
+model UserRole {
+  id       Int      @id @default(autoincrement())
+  user_id  Int
+  role_name String  @db.Char(8)
 
-  trip   Trip   @relation(fields: [trip_id], references: [id], onDelete: Cascade)
-  ticket Ticket @relation(fields: [ticket_id], references: [id], onDelete: Cascade)
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
 }
