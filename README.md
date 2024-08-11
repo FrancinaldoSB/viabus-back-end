@@ -27,7 +27,7 @@ A arquitetura desta API segue um padrão RESTful, proporcionando uma forma padro
 
 A modelagem do banco de dados do ViaBus foi cuidadosamente planejada para garantir a eficiência e integridade dos dados. Abaixo, está o diagrama relacional que ilustra a estrutura das tabelas, seus relacionamentos e as principais entidades do sistema.
 
-![Esquema Relacional - Viabus](https://github.com/user-attachments/assets/21688ba1-0b17-4669-83d7-a822cc5aaee1)
+![Esquema Relacional - Viabus](https://github.com/user-attachments/assets/8ec2e5fc-f356-449a-9213-317b14c78c4b)
 
 ### Principais Entidades
 
