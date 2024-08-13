@@ -55,7 +55,7 @@ Front-end (Next.js) <--> API (Hono) <--> Banco de Dados (PostgreSQL)
 ### Pré-requisitos
 
 - Node.js 
-- PostgreSQL 
+- PostgreSQL 16
 - Bun 1.1.21 
 
 ### Passos para Instalação
