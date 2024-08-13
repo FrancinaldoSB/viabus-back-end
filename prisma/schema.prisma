@@ -16,10 +16,10 @@ datasource db {
 // checked
 model User {
   id         Int          @id @default(autoincrement())
-  cpf        String?      @db.Char(11) @unique
-  provider_id String      @db.Uuid
   name       String       @db.Char(100)
   email      String       @db.Char(100) @unique
+  provider_id String      @db.Uuid
+  cpf        String?      @db.Char(11) @unique
   photo_url  String?      @db.Char(255)
   created_at DateTime     @default(now()) @db.Timestamp(6)
 
