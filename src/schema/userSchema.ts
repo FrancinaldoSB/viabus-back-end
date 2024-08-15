@@ -14,13 +14,6 @@ export const userSchema = z.object({
     .trim()
     .min(1, "Email cannot be empty")
     .email("Invalid email"),
-  provider_id: z
-    .string({
-      required_error: "Provider ID is required",
-    })
-    .trim()
-    .min(1, "Provider ID cannot be empty")
-    .uuid("Invalid UUID"),
   photo_url: z.string().trim().optional().nullable(),
   cpf: z
     .string()

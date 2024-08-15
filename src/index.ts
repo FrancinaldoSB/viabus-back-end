@@ -28,6 +28,6 @@ app.get("/", (c) => {
 app.route("/api/users", usersRouter);
 
 export default {
-  port: Bun.env.PORT || 3000,
+  port: Bun.env.PORT || 5000,
   fetch: app.fetch,
 };

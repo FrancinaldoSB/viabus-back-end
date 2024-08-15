@@ -26,7 +26,7 @@ export class UsersController {
     }
   }
 
-  getUserById(c: Context) {
+  async getUserById(c: Context) {
     try {
       const id = Number(c.req.param("id"));
       return prisma.user
@@ -66,11 +66,27 @@ export class UsersController {
   async createUser(c: Context) {
     try {
       const body = await c.req.json();
-      const { name, email, provider_id, photo_url } = body;
+      const { name, email, photo_url } = body;
+
+      // Verificar se o usuário já existe
+      const existingUser = await prisma.user.findUnique({
+        where: { email },
+      });
+
+      if (existingUser) {
+        return c.json(
+          {
+            message: "User already exists",
+            data: existingUser,
+          },
+          200
+        );
+      }
+
+      // Se o usuário não existir, criar um novo
       const validate = userSchema.safeParse({
         name,
         email,
-        provider_id,
         photo_url,
       });
 
@@ -88,7 +104,6 @@ export class UsersController {
         data: {
           name: validate.data.name,
           email: validate.data.email,
-          provider_id: validate.data.provider_id,
           photo_url: validate.data.photo_url,
         },
       });
@@ -116,11 +131,10 @@ export class UsersController {
     try {
       const id = Number(c.req.param("id"));
       const body = await c.req.json();
-      const { name, email, provider_id, photo_url } = body;
+      const { name, email, photo_url } = body;
       const validate = userSchema.safeParse({
         name,
         email,
-        provider_id,
         photo_url,
       });
 
@@ -139,7 +153,6 @@ export class UsersController {
         data: {
           name: validate.data.name,
           email: validate.data.email,
-          provider_id: validate.data.provider_id,
           photo_url: validate.data.photo_url,
         },
       });
