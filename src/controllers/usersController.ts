@@ -111,8 +111,19 @@ export class UsersController {
 
   async updateUser(c: Context) {
     try {
+      const userAuth = c.get("user");
       const id = Number(c.req.param("id"));
       const body = await c.req.json();
+
+      if (userAuth.id !== id && c.get("user").role !== "admin") {
+        return c.json(
+          {
+            message: "Unauthorized",
+          },
+          401
+        );
+      }
+
       const { name, email, photo_url, role } = body;
       const validate = userSchema.safeParse({
         name: name,
@@ -157,6 +168,17 @@ export class UsersController {
   async deleteUser(c: Context) {
     try {
       const id = Number(c.req.param("id"));
+      const userAuth = c.get("user");
+
+      if (userAuth.id !== id && c.get("user").role !== "admin") {
+        return c.json(
+          {
+            message: "Unauthorized",
+          },
+          401
+        );
+      }
+      
       await prisma.user.delete({
         where: { id },
       });

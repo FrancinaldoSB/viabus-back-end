@@ -9,12 +9,31 @@ const userController = new UsersController();
 
 usersRouter.use("*", jwtAuth);
 
-usersRouter.get("/", authorizeRole([RoleEnum.ADMIN]), (c) =>
+// buscar todos os usuarios
+usersRouter.get("/", authorizeRole([RoleEnum.ADMIN, RoleEnum.EMPLOYEE]), (c) =>
   userController.fetchUsers(c)
 );
-usersRouter.get("/:id", (c) => userController.fetchUserById(c));
+
+// buscar usuario por id
+usersRouter.get(
+  "/:id",
+  authorizeRole([RoleEnum.ADMIN, RoleEnum.EMPLOYEE]),
+  (c) => userController.fetchUserById(c)
+);
+
+// criar usuario
 usersRouter.post("/", (c) => userController.createUser(c));
-usersRouter.put("/:id", (c) => userController.updateUser(c));
-usersRouter.delete("/:id", (c) => userController.deleteUser(c));
+
+// atualizar usuario
+usersRouter.put("/:id", authorizeRole([RoleEnum.ADMIN, RoleEnum.USER]), (c) =>
+  userController.updateUser(c)
+);
+
+// deletar usuario
+usersRouter.delete(
+  "/:id",
+  authorizeRole([RoleEnum.ADMIN, RoleEnum.USER]),
+  (c) => userController.deleteUser(c)
+);
 
 export default usersRouter;
