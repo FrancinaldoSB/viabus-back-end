@@ -21,12 +21,19 @@ model User {
   cpf        String?      @db.Char(11) @unique
   photo_url  String?      @db.Char(255)
   created_at DateTime     @default(now()) @db.Timestamp(6)
+  role       RoleEnum     @default(USER) // por padrão, o usuário é um usuário comum
 
   addresses  Address[]
   tickets    Ticket[]
   telephones Telephone[]
-  role       UserRole[]
   trips      Trip[]
+}
+
+// checked
+enum RoleEnum {
+  ADMIN
+  USER
+  EMPLOYEE
 }
 
 // checked
@@ -174,13 +181,4 @@ model Trip {
   route      Route        @relation(fields: [route_id], references: [id], onDelete: Cascade)
   driver     User         @relation(fields: [driver_id], references: [id], onDelete: Cascade)
   tickets    Ticket[]     // Relação um-para-muitos com Ticket
-}
-
-// checked
-model UserRole {
-  id       Int      @id @default(autoincrement())
-  user_id  Int
-  role_name String  @db.Char(8)
-
-  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
 }

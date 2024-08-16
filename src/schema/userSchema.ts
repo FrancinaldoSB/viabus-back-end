@@ -21,4 +21,5 @@ export const userSchema = z.object({
     .length(11, "CPF must be exactly 11 characters")
     .optional()
     .nullable(),
+  role: z.enum(["ADMIN", "USER", "EMPLOYEE"]).default("USER"),
 });

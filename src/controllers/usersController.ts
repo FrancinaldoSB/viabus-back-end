@@ -3,17 +3,13 @@ import prisma from "../client/prisma";
 import { userSchema } from "../schema/userSchema";
 
 export class UsersController {
-  async getAll(c: Context) {
+  async fetchUsers(c: Context) {
     try {
-      const users = await prisma.user.findMany({ orderBy: { id: "asc" } });
+      const users = await prisma.user.findMany({
+        orderBy: { id: "asc" },
+      });
 
-      return c.json(
-        {
-          message: "Success fetch all users",
-          data: users,
-        },
-        200
-      );
+      return c.json(users, 200);
     } catch (e: unknown) {
       console.error(`Error getting users ${e}`);
       return c.json(
@@ -26,7 +22,7 @@ export class UsersController {
     }
   }
 
-  async getUserById(c: Context) {
+  async fetchUserById(c: Context) {
     try {
       const id = Number(c.req.param("id"));
       return prisma.user
@@ -43,13 +39,7 @@ export class UsersController {
             );
           }
 
-          return c.json(
-            {
-              message: "Success fetch user",
-              data: user,
-            },
-            200
-          );
+          return c.json(user, 200);
         });
     } catch (e: unknown) {
       console.error(`Error getting user ${e}`);
@@ -63,31 +53,30 @@ export class UsersController {
     }
   }
 
+  async fetchUserByEmail(email: string) {
+    return prisma.user.findUnique({
+      where: { email },
+      select: { id: true, role: true, email: true },
+    });
+  }
+
   async createUser(c: Context) {
     try {
       const body = await c.req.json();
       const { name, email, photo_url } = body;
 
-      // Verificar se o usuário já existe
       const existingUser = await prisma.user.findUnique({
         where: { email },
       });
 
       if (existingUser) {
-        return c.json(
-          {
-            message: "User already exists",
-            data: existingUser,
-          },
-          200
-        );
+        return c.json(existingUser, 200);
       }
 
-      // Se o usuário não existir, criar um novo
       const validate = userSchema.safeParse({
-        name,
-        email,
-        photo_url,
+        name: name,
+        email: email,
+        photo_url: photo_url,
       });
 
       if (!validate.success) {
@@ -108,15 +97,8 @@ export class UsersController {
         },
       });
 
-      return c.json(
-        {
-          message: "User created",
-          data: user,
-        },
-        201
-      );
+      return c.json(user, 201);
     } catch (e: unknown) {
-      console.error(`Error creating user ${e}`);
       return c.json(
         {
           message: "Error creating user",
@@ -131,11 +113,12 @@ export class UsersController {
     try {
       const id = Number(c.req.param("id"));
       const body = await c.req.json();
-      const { name, email, photo_url } = body;
+      const { name, email, photo_url, role } = body;
       const validate = userSchema.safeParse({
-        name,
-        email,
-        photo_url,
+        name: name,
+        email: email,
+        photo_url: photo_url,
+        role: role,
       });
 
       if (!validate.success) {
@@ -154,16 +137,11 @@ export class UsersController {
           name: validate.data.name,
           email: validate.data.email,
           photo_url: validate.data.photo_url,
+          role: validate.data.role,
         },
       });
 
-      return c.json(
-        {
-          message: "User updated",
-          data: user,
-        },
-        200
-      );
+      return c.json(user, 200);
     } catch (e: unknown) {
       console.error(`Error updating user ${e}`);
       return c.json(
