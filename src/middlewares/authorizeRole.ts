@@ -3,9 +3,9 @@ import { RoleEnum } from "../enums/roleEnum";
 
 export const authorizeRole = (allowedRoles: RoleEnum[]) => {
   return async (c: Context, next: Next) => {
-    const user = c.get("user");
+    const authenticatedUser = c.get("authenticatedUser");
 
-    if (!user || !allowedRoles.includes(user.role)) {
+    if (!authenticatedUser || !allowedRoles.includes(authenticatedUser.role)) {
       return c.json({ error: "Acesso negado" }, 403);
     }
 

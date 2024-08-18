@@ -1,33 +1,29 @@
 import { Context, Next } from "hono";
-import { JwtPayload, verify } from "jsonwebtoken";
-import { UsersController } from "../controllers/usersController";
+import { OAuth2Client } from "google-auth-library";
 
-const usersController = new UsersController();
+import { UnauthorizedError } from "../utils/errors";
+
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 export const jwtAuth = async (c: Context, next: Next) => {
-  const authHeader = c.req.header("Authorization");
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return c.json({ error: "Token não fornecido ou inválido" }, 401);
-  }
+  const accessToken = c.req.header("Authorization")?.replace("Bearer ", "");
 
-  const token = authHeader.split(" ")[1];
+  if (!accessToken) throw new UnauthorizedError("Token não fornecido");
 
-  try {
-    const decoded = verify(token, process.env.JWT_SECRET!) as JwtPayload;
+  const ticket = await client.verifyIdToken({
+    idToken: accessToken,
+    audience: process.env.GOOGLE_CLIENT_ID,
+  });
 
-    const user = await usersController.fetchUserByEmail(decoded.email);
-    if (!user) {
-      return c.json({ error: "Usuário não encontrado" }, 404);
-    }
+  const payload = ticket.getPayload();
 
-    c.set("user", {
-      id: user.id,
-      role: user.role.trim(),
-      email: user.email.trim(),
-    });
+  if (!payload) throw new UnauthorizedError("Token inválido");
 
-    await next();
-  } catch (error) {
-    return c.json({ error: "Token inválido" }, 401);
-  }
+  c.set("session", {
+    name: payload.name,
+    email: payload.email,
+    picture: payload.picture,
+  });
+
+  await next();
 };

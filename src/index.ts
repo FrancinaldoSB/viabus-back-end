@@ -7,6 +7,8 @@ import usersRouter from "./router/usersRouter";
 
 import { csrf } from "hono/csrf";
 import { secureHeaders } from "hono/secure-headers";
+import authRouter from "./router/authRouter";
+import { jwtAuth } from "./middlewares/jwtAuth";
 
 const app = new Hono();
 
@@ -20,11 +22,13 @@ app.use(
 );
 app.use(csrf());
 app.use(secureHeaders());
+app.use("*", jwtAuth);
 
 app.get("/", (c) => {
   return c.json({ message: "ViaBus API" });
 });
 
+app.route("/api/auth", authRouter);
 app.route("/api/users", usersRouter);
 
 export default {

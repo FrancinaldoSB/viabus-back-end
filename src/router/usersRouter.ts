@@ -1,13 +1,14 @@
 import { Hono } from "hono";
 import { UsersController } from "../controllers/usersController";
 import { jwtAuth } from "../middlewares/jwtAuth";
+import { authenticatedUser } from "../middlewares/authenticatedUser";
 import { authorizeRole } from "../middlewares/authorizeRole";
 import { RoleEnum } from "../enums/roleEnum";
 
 const usersRouter = new Hono();
 const userController = new UsersController();
 
-usersRouter.use("*", jwtAuth);
+usersRouter.use("*", authenticatedUser);
 
 // buscar todos os usuarios
 usersRouter.get("/", authorizeRole([RoleEnum.ADMIN, RoleEnum.EMPLOYEE]), (c) =>

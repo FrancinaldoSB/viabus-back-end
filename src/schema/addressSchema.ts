@@ -1,17 +1,3 @@
-// model Address {
-//   id           Int      @id @default(autoincrement())
-//   user_id      Int
-//   street       String
-//   number       Int
-//   complement   String?
-//   neighborhood String
-//   city_name    String
-//   state        String
-//   cep          String
-
-//   user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
-// }
-
 import { z } from "zod";
 
 export const addressSchema = z.object({

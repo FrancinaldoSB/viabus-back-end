@@ -54,10 +54,15 @@ export class UsersController {
   }
 
   async fetchUserByEmail(email: string) {
-    return prisma.user.findUnique({
-      where: { email },
-      select: { id: true, role: true, email: true },
-    });
+    try {
+      return prisma.user.findUnique({
+        where: { email },
+        select: { id: true, role: true, email: true },
+      });
+    } catch (e: unknown) {
+      console.error(`Error getting user ${e}`);
+      return null;
+    }
   }
 
   async createUser(c: Context) {
@@ -178,7 +183,7 @@ export class UsersController {
           401
         );
       }
-      
+
       await prisma.user.delete({
         where: { id },
       });
