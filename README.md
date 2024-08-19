@@ -146,13 +146,4 @@ Resposta:
   "message": "Usuário encontrado",
   "data": { ... }
 }
-
-
-
-
-
-
-
-
-
-
+```
