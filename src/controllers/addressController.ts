@@ -1,5 +1,5 @@
 import { Context } from "hono";
-import prisma from "../client/prisma";
+import prisma from "../infrastructure/client/prisma";
 import { addressSchema } from "../schema/addressSchema";
 
 export class AddressController {

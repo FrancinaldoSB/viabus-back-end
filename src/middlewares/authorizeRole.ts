@@ -1,5 +1,5 @@
 import { Context, Next } from "hono";
-import { RoleEnum } from "../enums/roleEnum";
+import { RoleEnum } from "../models/enums/roleEnum";
 
 export const authorizeRole = (allowedRoles: RoleEnum[]) => {
   return async (c: Context, next: Next) => {

@@ -1,6 +1,6 @@
 import { type Context, type Next } from "hono";
 import { UnauthorizedError } from "../utils/errors";
-import prisma from "../client/prisma";
+import prisma from "../infrastructure/client/prisma";
 
 export async function authenticatedUser(c: Context, next: Next) {
   const sessionUserEmail = c.get("session")?.email;

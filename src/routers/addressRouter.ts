@@ -8,7 +8,7 @@ import { Hono } from "hono";
 import { AddressController } from "../controllers/addressController";
 import { jwtAuth } from "../middlewares/jwtAuth";
 import { authorizeRole } from "../middlewares/authorizeRole";
-import { RoleEnum } from "../enums/roleEnum";
+import { RoleEnum } from "../models/enums/roleEnum";
 
 const addressRouter = new Hono();
 const addressController = new AddressController();
