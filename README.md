@@ -81,13 +81,69 @@ Para uma lista completa de rotas, consulte a documentação da API.
 
 ## Autenticação
 
-A autenticação ainda não foi implementada na API, mas será feita utilizando JWT em futuras atualizações.
+O sistema de autenticação da API ViaBus foi implementado utilizando OAuth 2.0 via Google e JSON Web Tokens (JWT), proporcionando uma camada segura e eficiente de acesso.
 
+### Visão Geral
 
+A autenticação é realizada no front-end, desenvolvido com Next.js, utilizando a biblioteca `NextAuth.js`. O back-end, construído com Hono e Prisma, gerencia a verificação e criação dos usuários no banco de dados PostgreSQL.
 
+### Fluxo de Autenticação
 
+1. **Login com Google**:
+   - O usuário inicia a autenticação clicando no botão de login com Google no front-end.
+   - `NextAuth.js` gerencia a autenticação com o Google via `GoogleProvider`, obtendo o `id_token`.
 
+2. **Verificação e Criação de Usuário**:
+   - O front-end envia o `id_token` para a API do ViaBus.
+   - A API verifica se o usuário já existe no banco de dados através do endpoint `/api/auth/check`.
+     - Se o usuário for encontrado, ele é autenticado.
+     - Se o usuário não existir, um novo registro é criado no banco de dados usando o endpoint `/api/auth/signup`.
 
+3. **Sessão JWT**:
+   - Um token JWT é gerado e incluído na sessão do usuário, permitindo autenticação em futuras interações com a API.
 
+### Middleware de Autenticação de Usuário
 
+O middleware `authenticatedUser` é utilizado para proteger rotas que devem ser acessíveis apenas por usuários autenticados. Ele valida o usuário com base nas informações da sessão e do banco de dados.
 
+#### Funcionamento
+
+1. **Verificação da Sessão**:
+   - Extrai o email do usuário autenticado a partir do objeto `session`, que contém informações básicas obtidas do token JWT.
+
+2. **Busca no Banco de Dados**:
+   - Verifica no banco de dados se o usuário existe, utilizando o Prisma. Se o usuário não for encontrado, lança uma exceção `UnauthorizedError`.
+
+3. **Configuração do Usuário Autenticado**:
+   - Armazena o objeto completo do usuário encontrado no banco de dados em `authenticatedUser`, que pode ser acessado por outros middlewares ou controladores.
+
+#### Diferença entre `session` e `authenticatedUser`
+
+- **`session`**:
+  - Contém informações básicas do usuário (nome, email, foto) extraídas do token JWT.
+  - Usado para validação rápida do token.
+
+- **`authenticatedUser`**:
+  - Objeto mais completo com dados detalhados do usuário obtidos do banco de dados (inclui `role`, `id`, etc.).
+  - Usado em rotas que requerem informações detalhadas e seguras do usuário.
+
+### Endpoints de Autenticação
+
+- **POST `/api/auth/check`**: Verifica se o usuário já existe no banco de dados utilizando o token JWT.
+- **POST `/api/auth/signup`**: Cria um novo usuário no banco de dados, caso ele ainda não exista.
+
+### Exemplos de Uso
+
+**Verificação de Usuário:**
+
+```bash
+POST /api/auth/check
+Authorization: Bearer <id_token>
+
+Resposta:
+{
+  "ok": true,
+  "message": "Usuário encontrado",
+  "data": { ... }
+}
+```
