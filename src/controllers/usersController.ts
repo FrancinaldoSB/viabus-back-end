@@ -1,13 +1,15 @@
 import { Context } from "hono";
-import prisma from "../infrastructure/client/prisma";
+import { UserService } from "../services/userService";
 import { userSchema } from "../schema/userSchema";
+import { User } from "../interfaces/user";
+import { RoleEnum } from "../interfaces/enums/roleEnum";
+
+const userService = new UserService();
 
 export class UsersController {
   async fetchUsers(c: Context) {
     try {
-      const users = await prisma.user.findMany({
-        orderBy: { id: "asc" },
-      });
+      const users = await userService.getUsers();
 
       return c.json(users, 200);
     } catch (e: unknown) {
@@ -25,22 +27,18 @@ export class UsersController {
   async fetchUserById(c: Context) {
     try {
       const id = Number(c.req.param("id"));
-      return prisma.user
-        .findUnique({
-          where: { id },
-        })
-        .then((user) => {
-          if (!user) {
-            return c.json(
-              {
-                message: "User not found",
-              },
-              404
-            );
-          }
+      const user = await userService.getUserById(id);
 
-          return c.json(user, 200);
-        });
+      if (!user) {
+        return c.json(
+          {
+            message: "User not found",
+          },
+          404
+        );
+      }
+
+      return c.json(user, 200);
     } catch (e: unknown) {
       console.error(`Error getting user ${e}`);
       return c.json(
@@ -53,12 +51,16 @@ export class UsersController {
     }
   }
 
-  async fetchUserByEmail(email: string) {
+  async fetchUserByEmail(c: Context) {
     try {
-      return prisma.user.findUnique({
-        where: { email },
-        select: { id: true, role: true, email: true },
-      });
+      const email = c.req.param("email");
+      const user = await userService.getUserByEmail(email);
+
+      if (!user) {
+        return null;
+      }
+
+      return c.json(user, 200);
     } catch (e: unknown) {
       console.error(`Error getting user ${e}`);
       return null;
@@ -70,9 +72,7 @@ export class UsersController {
       const body = await c.req.json();
       const { name, email, photo_url } = body;
 
-      const existingUser = await prisma.user.findUnique({
-        where: { email },
-      });
+      const existingUser = await userService.getUserByEmail(email);
 
       if (existingUser) {
         return c.json(existingUser, 200);
@@ -94,13 +94,13 @@ export class UsersController {
         );
       }
 
-      const user = await prisma.user.create({
-        data: {
-          name: validate.data.name,
-          email: validate.data.email,
-          photo_url: validate.data.photo_url,
-        },
-      });
+      const user: User = {
+        name: validate.data.name,
+        email: validate.data.email,
+        photo_url: validate.data.photo_url!,
+      };
+
+      const newUser = await userService.createUser(user);
 
       return c.json(user, 201);
     } catch (e: unknown) {
@@ -116,20 +116,10 @@ export class UsersController {
 
   async updateUser(c: Context) {
     try {
-      const userAuth = c.get("user");
-      const id = Number(c.req.param("id"));
       const body = await c.req.json();
 
-      if (userAuth.id !== id && c.get("user").role !== "admin") {
-        return c.json(
-          {
-            message: "Unauthorized",
-          },
-          401
-        );
-      }
-
       const { name, email, photo_url, role } = body;
+
       const validate = userSchema.safeParse({
         name: name,
         email: email,
@@ -147,17 +137,17 @@ export class UsersController {
         );
       }
 
-      const user = await prisma.user.update({
-        where: { id },
-        data: {
-          name: validate.data.name,
-          email: validate.data.email,
-          photo_url: validate.data.photo_url,
-          role: validate.data.role,
-        },
-      });
+      const user: User = {
+        id: Number(c.req.param("id")),
+        name: validate.data.name,
+        email: validate.data.email,
+        photo_url: validate.data.photo_url || "",
+        role: validate.data.role as RoleEnum,
+      };
 
-      return c.json(user, 200);
+      const updatedUser = await userService.updateUser(user);
+
+      return c.json(updatedUser, 200);
     } catch (e: unknown) {
       console.error(`Error updating user ${e}`);
       return c.json(
@@ -173,27 +163,10 @@ export class UsersController {
   async deleteUser(c: Context) {
     try {
       const id = Number(c.req.param("id"));
-      const userAuth = c.get("user");
 
-      if (userAuth.id !== id && c.get("user").role !== "admin") {
-        return c.json(
-          {
-            message: "Unauthorized",
-          },
-          401
-        );
-      }
+      const deletedUser = await userService.deleteUser(id);
 
-      await prisma.user.delete({
-        where: { id },
-      });
-
-      return c.json(
-        {
-          message: "User deleted",
-        },
-        200
-      );
+      return c.json(deletedUser, 200);
     } catch (e: unknown) {
       console.error(`Error deleting user ${e}`);
       return c.json(

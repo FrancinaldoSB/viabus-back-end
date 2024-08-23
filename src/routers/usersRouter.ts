@@ -1,9 +1,8 @@
 import { Hono } from "hono";
 import { UsersController } from "../controllers/usersController";
-import { jwtAuth } from "../middlewares/jwtAuth";
 import { authenticatedUser } from "../middlewares/authenticatedUser";
 import { authorizeRole } from "../middlewares/authorizeRole";
-import { RoleEnum } from "../models/enums/roleEnum";
+import { RoleEnum } from "../interfaces/enums/roleEnum";
 
 const usersRouter = new Hono();
 const userController = new UsersController();

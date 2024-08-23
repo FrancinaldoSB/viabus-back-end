@@ -1,6 +1,8 @@
 import { Context } from "hono";
-import prisma from "../infrastructure/client/prisma";
 import { userSchema } from "../schema/userSchema";
+import { UserService } from "../services/userService";
+
+const userService = new UserService();
 
 export class AuthController {
   async checkUser(c: Context) {
@@ -8,9 +10,7 @@ export class AuthController {
       const session = c.get("session");
       const email = session?.email;
 
-      const user = await prisma.user.findUnique({
-        where: { email },
-      });
+      const user = await userService.getUserByEmail(email);
 
       if (!user) {
         return c.json(
@@ -48,9 +48,7 @@ export class AuthController {
       const session = c.get("session");
       const { name, email, picture: photo_url } = session;
 
-      const existingUser = await prisma.user.findUnique({
-        where: { email },
-      });
+      const existingUser = await userService.getUserByEmail(email);
 
       if (existingUser) {
         return c.json(
@@ -80,12 +78,10 @@ export class AuthController {
         );
       }
 
-      const user = await prisma.user.create({
-        data: {
-          name,
-          email,
-          photo_url,
-        },
+      const user = await userService.createUser({
+        name,
+        email,
+        photo_url,
       });
 
       return c.json(

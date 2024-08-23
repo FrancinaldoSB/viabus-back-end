@@ -5,7 +5,6 @@
 // import { RoleEnum } from "../enums/roleEnum";
 
 import { Hono } from "hono";
-import { jwtAuth } from "../middlewares/jwtAuth";
 import { AuthController } from "../controllers/authController";
 
 const authRouter = new Hono();
