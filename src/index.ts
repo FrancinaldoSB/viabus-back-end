@@ -22,11 +22,12 @@ app.use(
 );
 app.use(csrf());
 app.use(secureHeaders());
-app.use("*", jwtAuth);
 
 app.get("/", (c) => {
-  return c.json({ message: "ViaBus API" });
+  return c.json({ message: "API ViaBus online!" });
 });
+
+app.use("*", jwtAuth);
 
 app.route("/api/auth", authRouter);
 app.route("/api/users", usersRouter);
