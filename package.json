@@ -5,7 +5,8 @@
     "build": "bun install && bun run prisma",
     "deploy": "bun run src/index.ts",
     "migrate": "bunx prisma migrate dev --schema=src/infrastructure/prisma/schema.prisma",
-    "generate": "bunx prisma generate --schema=src/infrastructure/prisma/schema.prisma"
+    "generate": "bunx prisma generate --schema=src/infrastructure/prisma/schema.prisma",
+    "start": "bun run src/index.ts"
   },
   "dependencies": {
     "@prisma/client": "^5.18.0",
