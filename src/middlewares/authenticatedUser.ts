@@ -5,7 +5,6 @@ import { User } from "../interfaces/user";
 
 export async function authenticatedUser(c: Context, next: Next) {
   const sessionUserEmail = c.get("session")?.email;
-  console.log(sessionUserEmail);
 
   if (!sessionUserEmail)
     throw new UnauthorizedError("User is not authenticated.");
