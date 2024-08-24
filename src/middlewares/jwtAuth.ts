@@ -26,7 +26,7 @@ export const jwtAuth = async (c: Context, next: Next) => {
   };
 
   c.set("session", {
-    userSession,
+    ...userSession,
   });
 
   await next();

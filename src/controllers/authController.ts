@@ -1,14 +1,15 @@
 import { Context } from "hono";
 import { userSchema } from "../schema/userSchema";
 import { UserService } from "../services/userService";
+import { User } from "@prisma/client";
 
 const userService = new UserService();
 
 export class AuthController {
   async checkUser(c: Context) {
     try {
-      const session = c.get("session");
-      const email = session?.email;
+      const session = c.get("session") as User;
+      const email = session.email;
 
       const user = await userService.getUserByEmail(email);
 
@@ -45,10 +46,9 @@ export class AuthController {
 
   async signUp(c: Context) {
     try {
-      const session = c.get("session");
-      const { name, email, picture: photo_url } = session;
+      const session = c.get("session") as User;
 
-      const existingUser = await userService.getUserByEmail(email);
+      const existingUser = await userService.getUserByEmail(session.email);
 
       if (existingUser) {
         return c.json(
@@ -62,9 +62,9 @@ export class AuthController {
       }
 
       const validate = userSchema.safeParse({
-        name: name,
-        email: email,
-        photo_url: photo_url,
+        name: session.name,
+        email: session.email,
+        photo_url: session.photo_url,
       });
 
       if (!validate.success) {
@@ -79,9 +79,9 @@ export class AuthController {
       }
 
       const user = await userService.createUser({
-        name,
-        email,
-        photo_url,
+        name: session.name,
+        email: session.email,
+        photo_url: session.photo_url as string,
       });
 
       return c.json(

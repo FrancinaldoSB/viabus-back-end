@@ -16,7 +16,9 @@ export async function authenticatedUser(c: Context, next: Next) {
 
   if (!user) throw new UnauthorizedError("User not found.");
 
-  c.set("authenticatedUser", user);
+  c.set("authenticatedUser", {
+    ...user,
+  });
 
   await next();
 }
