@@ -2,11 +2,11 @@
   "name": "viabus",
   "scripts": {
     "dev": "bun run --hot src/index.ts",
-    "build": "bun install && bun run prisma",
+    "build": "bun install && bun run prisma migrate dev --schema=src/infrastructure/prisma/schema.prisma",
     "deploy": "bun run src/index.ts",
     "migrate": "bunx prisma migrate dev --schema=src/infrastructure/prisma/schema.prisma",
     "generate": "bunx prisma generate --schema=src/infrastructure/prisma/schema.prisma",
-    "start": "bun run prisma migrate dev --schema=src/infrastructure/prisma/schema.prisma && bun run src/index.ts"
+    "start": "bun run src/index.ts"
   },
   "dependencies": {
     "@prisma/client": "^5.18.0",
