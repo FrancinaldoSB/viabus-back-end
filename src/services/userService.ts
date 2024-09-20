@@ -1,5 +1,5 @@
+import { User } from "@prisma/client";
 import prisma from "../infrastructure/client/prisma";
-import { User } from "../interfaces/user";
 
 export class UserService {
   async getUsers() {
@@ -42,6 +42,7 @@ export class UserService {
         email: user.email,
         photo_url: user.photo_url,
       },
+      select: { name: true, role: true, email: true },
     });
 
     return newUser;

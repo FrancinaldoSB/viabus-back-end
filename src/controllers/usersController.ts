@@ -1,8 +1,7 @@
 import { Context } from "hono";
 import { UserService } from "../services/userService";
 import { userSchema } from "../schema/userSchema";
-import { User } from "../interfaces/user";
-import { RoleEnum } from "../interfaces/enums/roleEnum";
+import { RoleEnum, User } from "@prisma/client";
 
 const userService = new UserService();
 
@@ -94,15 +93,15 @@ export class UsersController {
         );
       }
 
-      const user: User = {
+      const user = {
         name: validate.data.name,
         email: validate.data.email,
         photo_url: validate.data.photo_url!,
-      };
+      } as User;
 
       const newUser = await userService.createUser(user);
 
-      return c.json(user, 201);
+      return c.json(newUser, 201);
     } catch (e: unknown) {
       return c.json(
         {
@@ -137,13 +136,13 @@ export class UsersController {
         );
       }
 
-      const user: User = {
+      const user = {
         id: Number(c.req.param("id")),
         name: validate.data.name,
         email: validate.data.email,
         photo_url: validate.data.photo_url || "",
         role: validate.data.role as RoleEnum,
-      };
+      } as User;
 
       const updatedUser = await userService.updateUser(user);
 

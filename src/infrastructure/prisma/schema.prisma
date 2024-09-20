@@ -16,12 +16,13 @@ datasource db {
 // checked
 model User {
   id         Int          @id @default(autoincrement())
-  name       String       @db.Char(100)
-  email      String       @db.Char(100) @unique
-  cpf        String?      @db.Char(11) @unique
-  photo_url  String?      @db.Char(255)
-  created_at DateTime     @default(now()) @db.Timestamp(6)
+  name       String      
+  email      String       @unique
+  cpf        String?      @unique
+  photo_url  String?      
   role       RoleEnum     @default(USER) // por padrão, o usuário é um usuário comum
+  createdAt  DateTime     @default(now()) @db.Timestamp(6)
+  updatedAt  DateTime     @updatedAt
 
   addresses  Address[]
   tickets    Ticket[]
@@ -84,7 +85,7 @@ model Payment {
 model Telephone {
   id           Int      @id @default(autoincrement())
   user_id      Int
-  phone_number String   @db.Char(50)
+  phone_number String   
 
   user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
 }
@@ -92,32 +93,20 @@ model Telephone {
 // checked
 model Stop {
   id            Int       @id @default(autoincrement())
-  city_id       Int
-  name          String    @db.Char(100)
-  boarding_time DateTime  @db.Time
+  name          String   
+  street        String
+  number        Int?
+  complement    String?
+  neighborhood  String?
+  city_name     String
+  state         String
+  cep           Int?
 
   boardingTickets Ticket[] @relation("BoardingStop") // Embarque
   arrivalTickets  Ticket[] @relation("ArrivalStop") // Desembarque
   originPrices    RoutePrice[] @relation("OriginStop") // Lista com todos os preços de origem para outras cidades
   destinationPrices RoutePrice[] @relation("DestinationStop") // Lista com todos os preços de destino para outras cidades
-  routeStops      RouteStop[]
-  stopAddresses   StopAddress[]
-  
-}
-
-// checked
-model StopAddress {
-  id            Int    @id @default(autoincrement())
-  stop_id       Int
-  street        String
-  number        Int
-  complement    String?
-  neighborhood  String
-  city_name     String
-  state         String
-  cep           Int
-
-  stop Stop @relation(fields: [stop_id], references: [id], onDelete: Cascade)
+  routeStops      RouteStop[]  
 }
 
 // checked
@@ -154,6 +143,7 @@ model RouteStop {
   route_id       Int
   stop_id        Int
   stop_order     Int
+  boarding_time DateTime  @db.Time
 
   route Route @relation(fields: [route_id], references: [id], onDelete: Cascade)
   stop  Stop  @relation(fields: [stop_id], references: [id], onDelete: Cascade)

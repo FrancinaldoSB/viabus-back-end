@@ -2,7 +2,7 @@ import { Context, Next } from "hono";
 import { OAuth2Client } from "google-auth-library";
 
 import { UnauthorizedError } from "../utils/errors";
-import { User } from "../interfaces/user";
+
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 export const jwtAuth = async (c: Context, next: Next) => {
@@ -19,14 +19,14 @@ export const jwtAuth = async (c: Context, next: Next) => {
 
   if (!payload) throw new UnauthorizedError("Token inválido");
 
-  const userSession: User = {
+  const session: ISession = {
     name: payload.name as string,
     email: payload.email as string,
     photo_url: payload.picture as string,
   };
 
   c.set("session", {
-    ...userSession,
+    ...session,
   });
 
   await next();

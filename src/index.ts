@@ -9,6 +9,7 @@ import { csrf } from "hono/csrf";
 import { secureHeaders } from "hono/secure-headers";
 import authRouter from "./routers/authRouter";
 import { jwtAuth } from "./middlewares/jwtAuth";
+import stopsRouter from "./routers/stopsRouter";
 
 const app = new Hono();
 
@@ -31,6 +32,7 @@ app.use("*", jwtAuth);
 
 app.route("/api/auth", authRouter);
 app.route("/api/users", usersRouter);
+app.route("/api/stops", stopsRouter);
 
 export default {
   port: Bun.env.PORT || 5000,
