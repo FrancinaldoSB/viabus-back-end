@@ -62,7 +62,6 @@ export class StopsController {
 
   async getStops(c: Context) {
     try {
-      console.log("getStops");
       const stops = await prisma.stop.findMany();
 
       c.status(200);
