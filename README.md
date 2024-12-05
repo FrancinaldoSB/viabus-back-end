@@ -1,6 +1,7 @@
+
 # ViaBus API
 
-Bem-vindo à API do ViaBus! Esta API serve como a interface de programação necessária entre o front-end, desenvolvido em Next.js, e o banco de dados PostgreSQL no back-end. Ela é construída utilizando o framework Hono, garantindo alta performance e simplicidade no desenvolvimento.
+Bem-vindo à API do ViaBus! Esta API serve como a interface de programação necessária entre o front-end, desenvolvido em Next.js, e o banco de dados PostgreSQL no back-end. Agora, a API foi migrada para o **Spring Boot**, garantindo robustez, escalabilidade e maior integração com o ecossistema Java.
 
 ## Sumário
 
@@ -15,11 +16,13 @@ Bem-vindo à API do ViaBus! Esta API serve como a interface de programação nec
 
 A API do ViaBus foi projetada para fornecer uma interface eficiente e fácil de usar para o gerenciamento das funcionalidades do sistema de transporte de passageiros. Ela permite a manipulação de dados como usuários, rotas de ônibus, horários, paradas, e muito mais.
 
+Com a migração para o **Spring Boot**, a API agora se beneficia de uma infraestrutura altamente configurável e um ecossistema poderoso que suporta integrações e monitoramento avançados.
+
 ## Arquitetura
 
 A arquitetura desta API segue um padrão RESTful, proporcionando uma forma padronizada de interação com os recursos do sistema. As principais tecnologias utilizadas são:
 
-- **[Hono](https://hono.dev/)**: Framework minimalista e rápido para criação de APIs.
+- **[Spring Boot](https://spring.io/projects/spring-boot)**: Framework Java para o desenvolvimento de aplicações web robustas e escaláveis.
 - **[Next.js](https://nextjs.org/)**: Framework React para o desenvolvimento do front-end.
 - **[PostgreSQL](https://www.postgresql.org/)**: Sistema de gerenciamento de banco de dados relacional robusto.
 
@@ -44,106 +47,132 @@ A modelagem do banco de dados do ViaBus foi cuidadosamente planejada para garant
 
 O modelo foi implementado utilizando PostgreSQL.
 
-
 ### Diagrama Simplificado
 
-Front-end (Next.js) <--> API (Hono) <--> Banco de Dados (PostgreSQL)
-
+Front-end (Next.js) <--> API (Spring Boot) <--> Banco de Dados (PostgreSQL)
 
 ## Instalação
 
 ### Pré-requisitos
 
-- Node.js 
+- Java 17 ou superior
+- Maven 3.8+
 - PostgreSQL 16
-- Bun 1.1.21 
+- Node.js (para o front-end)
 
 ### Passos para Instalação
 
 1. Clone o repositório:
    ```bash
    git@github.com:ViaBus/viabus-back-end.git
-    ```
-2. Instale as dependências:
-    ```bash
-    bun install
-    ```
-3. Crie um arquivo `.env` na raiz do projeto e adicione as variáveis de ambiente necessárias.
-4. Execute o comando:
-    ```bash
-    bun run dev
-    ```
-5. Acesse a API em `http://localhost:3000`.
+   ```
+2. Instale as dependências do projeto Java:
+   ```bash
+   mvn clean install
+   ```
+3. Configure o arquivo `application.properties` com as credenciais do banco de dados no diretório `src/main/resources`:
+   ```properties
+   spring.datasource.url=jdbc:postgresql://localhost:5432/viabus
+   spring.datasource.username=seu_usuario
+   spring.datasource.password=sua_senha
+   ```
+4. Execute o projeto:
+   ```bash
+   mvn spring-boot:run
+   ```
+5. Acesse a API em `http://localhost:8080`.
 
 ## Rotas
 
-Para uma lista completa de rotas, consulte a documentação da API.
+### Usuários (/users)
+
+Estas rotas gerenciam informações dos usuários, incluindo endereços, telefones e funções.
+
+- **GET /users**: Retorna uma lista de todos os usuários.
+- **GET /users/{id}**: Retorna um usuário específico pelo seu ID.
+- **POST /users**: Cria um novo usuário.
+- **PUT /users/{id}**: Atualiza os dados de um usuário específico.
+- **DELETE /users/{id}**: Remove um usuário.
+
+**Relacionadas:**
+
+- **GET /users/{id}/address**: Retorna o endereço do usuário.
+- **POST /users/{id}/address**: Cria um endereço para o usuário.
+- **PUT /users/{id}/address**: Atualiza o endereço do usuário.
+- **GET /users/{id}/phones**: Retorna os telefones do usuário.
+- **POST /users/{id}/phones**: Adiciona um telefone para o usuário.
+- **DELETE /users/{id}/phones/{phone_id}**: Remove um telefone específico do usuário.
+- **GET /users/{id}/roles**: Retorna os papéis (roles) associados ao usuário.
+- **POST /users/{id}/roles**: Adiciona um papel para o usuário.
+
+### Tickets (/tickets)
+
+Rotas para gerenciamento de tickets, incluindo informações de pagamento.
+
+- **GET /tickets**: Retorna todos os tickets.
+- **GET /tickets/{id}**: Retorna informações de um ticket específico.
+- **POST /tickets**: Cria um novo ticket.
+- **PUT /tickets/{id}**: Atualiza um ticket específico.
+- **DELETE /tickets/{id}**: Remove um ticket.
+
+**Relacionadas:**
+
+- **GET /tickets/{id}/payment**: Retorna informações de pagamento de um ticket.
+- **POST /tickets/{id}/payment**: Realiza o pagamento de um ticket.
+
+### Paradas (/stops)
+
+Gerenciamento de paradas e endereços de paradas.
+
+- **GET /stops**: Retorna todas as paradas.
+- **GET /stops/{id}**: Retorna uma parada específica.
+- **POST /stops**: Cria uma nova parada.
+- **PUT /stops/{id}**: Atualiza uma parada.
+- **DELETE /stops/{id}**: Remove uma parada.
+
+**Relacionadas:**
+
+- **GET /stops/{id}/address**: Retorna o endereço da parada.
+- **POST /stops/{id}/address**: Cria um endereço para a parada.
+- **PUT /stops/{id}/address**: Atualiza o endereço da parada.
+
+### Rotas (/routes)
+
+Gerenciamento de rotas de viagem.
+
+- **GET /routes**: Retorna todas as rotas disponíveis.
+- **GET /routes/{id}**: Retorna informações de uma rota específica.
+- **POST /routes**: Cria uma nova rota.
+- **PUT /routes/{id}**: Atualiza uma rota.
+- **DELETE /routes/{id}**: Remove uma rota.
+
+**Relacionadas:**
+
+- **GET /routes/{id}/stops**: Retorna todas as paradas associadas a uma rota.
+- **POST /routes/{id}/stops**: Adiciona uma parada a uma rota, especificando a ordem.
+- **GET /routes/{id}/schedule**: Retorna a agenda (horário) da rota.
+- **POST /routes/{id}/schedule**: Cria ou atualiza a agenda da rota.
+
+### Viagens (/trips)
+
+Gerenciamento de viagens associadas a uma rota.
+
+- **GET /trips**: Retorna todas as viagens.
+- **GET /trips/{id}**: Retorna uma viagem específica.
+- **POST /trips**: Cria uma nova viagem.
+- **PUT /trips/{id}**: Atualiza uma viagem existente.
+- **DELETE /trips/{id}**: Remove uma viagem.
+
+### Preços de Rota (/route-prices)
+
+Gerenciamento dos preços entre as paradas de origem e destino.
+
+- **GET /route-prices**: Retorna todos os preços das rotas.
+- **GET /route-prices/{id}**: Retorna um preço específico de rota.
+- **POST /route-prices**: Cria um novo preço para uma rota (incluindo parada de origem e destino).
+- **PUT /route-prices/{id}**: Atualiza um preço específico de rota.
+- **DELETE /route-prices/{id}**: Remove um preço específico de rota.
 
 ## Autenticação
 
-O sistema de autenticação da API ViaBus foi implementado utilizando OAuth 2.0 via Google e JSON Web Tokens (JWT), proporcionando uma camada segura e eficiente de acesso.
-
-### Visão Geral
-
-A autenticação é realizada no front-end, desenvolvido com Next.js, utilizando a biblioteca `NextAuth.js`. O back-end, construído com Hono e Prisma, gerencia a verificação e criação dos usuários no banco de dados PostgreSQL.
-
-### Fluxo de Autenticação
-
-1. **Login com Google**:
-   - O usuário inicia a autenticação clicando no botão de login com Google no front-end.
-   - `NextAuth.js` gerencia a autenticação com o Google via `GoogleProvider`, obtendo o `id_token`.
-
-2. **Verificação e Criação de Usuário**:
-   - O front-end envia o `id_token` para a API do ViaBus.
-   - A API verifica se o usuário já existe no banco de dados através do endpoint `/api/auth/check`.
-     - Se o usuário for encontrado, ele é autenticado.
-     - Se o usuário não existir, um novo registro é criado no banco de dados usando o endpoint `/api/auth/signup`.
-
-3. **Sessão JWT**:
-   - Um token JWT é gerado e incluído na sessão do usuário, permitindo autenticação em futuras interações com a API.
-
-### Middleware de Autenticação de Usuário
-
-O middleware `authenticatedUser` é utilizado para proteger rotas que devem ser acessíveis apenas por usuários autenticados. Ele valida o usuário com base nas informações da sessão e do banco de dados.
-
-#### Funcionamento
-
-1. **Verificação da Sessão**:
-   - Extrai o email do usuário autenticado a partir do objeto `session`, que contém informações básicas obtidas do token JWT.
-
-2. **Busca no Banco de Dados**:
-   - Verifica no banco de dados se o usuário existe, utilizando o Prisma. Se o usuário não for encontrado, lança uma exceção `UnauthorizedError`.
-
-3. **Configuração do Usuário Autenticado**:
-   - Armazena o objeto completo do usuário encontrado no banco de dados em `authenticatedUser`, que pode ser acessado por outros middlewares ou controladores.
-
-#### Diferença entre `session` e `authenticatedUser`
-
-- **`session`**:
-  - Contém informações básicas do usuário (nome, email, foto) extraídas do token JWT.
-  - Usado para validação rápida do token.
-
-- **`authenticatedUser`**:
-  - Objeto mais completo com dados detalhados do usuário obtidos do banco de dados (inclui `role`, `id`, etc.).
-  - Usado em rotas que requerem informações detalhadas e seguras do usuário.
-
-### Endpoints de Autenticação
-
-- **POST `/api/auth/check`**: Verifica se o usuário já existe no banco de dados utilizando o token JWT.
-- **POST `/api/auth/signup`**: Cria um novo usuário no banco de dados, caso ele ainda não exista.
-
-### Exemplos de Uso
-
-**Verificação de Usuário:**
-
-```bash
-POST /api/auth/check
-Authorization: Bearer <id_token>
-
-Resposta:
-{
-  "ok": true,
-  "message": "Usuário encontrado",
-  "data": { ... }
-}
-```
+O sistema de autenticação permanece o mesmo, utilizando OAuth 2.0 via Google e JSON Web Tokens (JWT), com a API Spring Boot lidando com a verificação e autorização.
