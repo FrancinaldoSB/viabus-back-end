@@ -9,5 +9,4 @@ public class ViabusApiApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(ViabusApiApplication.class, args);
 	}
-
 }
