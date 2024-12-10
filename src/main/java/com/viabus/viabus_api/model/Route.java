@@ -24,8 +24,7 @@ public class Route {
   private Double duration;
 
   // construtor padrão para o JPA. Ele serve para estanciar as entidades no banco de dados.
-  public Route() {
-  }
+  public Route() {}
 
   // construtor com os atributos da classe. Serve para instanciar objetos da classe.
   public Route(String name, Double distance, Double duration) {
