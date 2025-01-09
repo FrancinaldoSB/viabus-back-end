@@ -4,8 +4,11 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 
 @Entity
 @Table(name = "routes")
@@ -17,21 +20,15 @@ public class Route {
   @NotEmpty(message = "Nome não pode ser vazio")
   private String name;
 
-  @NotEmpty(message = "A distância não pode ser vazia")
+  @NotNull(message = "A distância não pode ser vazia")
   private Double distance;
 
-  @NotEmpty(message = "A duração não pode ser vazia")
+  @NotNull(message = "A duração não pode ser vazia")
   private Double duration;
 
-  // construtor padrão para o JPA. Ele serve para estanciar as entidades no banco de dados.
-  public Route() {}
-
-  // construtor com os atributos da classe. Serve para instanciar objetos da classe.
-  public Route(String name, Double distance, Double duration) {
-    this.name = name;
-    this.distance = distance;
-    this.duration = duration;
-  }
+  @ManyToOne
+  @JoinColumn(name = "user_id", nullable = true) // Relacionamento opcional
+  private User user;
 
   public Long getId() {
     return id;
@@ -63,5 +60,13 @@ public class Route {
 
   public void setDuration(Double duration) {
     this.duration = duration;
+  }
+
+  public User getUser() {
+    return user;
+  }
+
+  public void setUser(User user) {
+    this.user = user;
   }
 }
