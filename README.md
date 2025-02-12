@@ -1,178 +1,99 @@
+<p align="center">
+  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
+</p>
 
-# ViaBus API
+[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
+[circleci-url]: https://circleci.com/gh/nestjs/nest
 
-Bem-vindo à API do ViaBus! Esta API serve como a interface de programação necessária entre o front-end, desenvolvido em Next.js, e o banco de dados PostgreSQL no back-end. Agora, a API foi migrada para o **Spring Boot**, garantindo robustez, escalabilidade e maior integração com o ecossistema Java.
+  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
+    <p align="center">
+<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
+<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
+<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
+<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
+<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
+<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
+<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
+<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
+  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
+    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
+  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
+</p>
+  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
+  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
 
-## Sumário
+## Description
 
-- [Introdução](#introdução)
-- [Arquitetura](#arquitetura)
-- [Banco de Dados](#banco-de-dados)
-- [Instalação](#instalação)
-- [Rotas](#rotas)
-- [Autenticação](#autenticação)
+[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
 
-## Introdução
+## Project setup
 
-A API do ViaBus foi projetada para fornecer uma interface eficiente e fácil de usar para o gerenciamento das funcionalidades do sistema de transporte de passageiros. Ela permite a manipulação de dados como usuários, rotas de ônibus, horários, paradas, e muito mais.
+```bash
+$ npm install
+```
 
-Com a migração para o **Spring Boot**, a API agora se beneficia de uma infraestrutura altamente configurável e um ecossistema poderoso que suporta integrações e monitoramento avançados.
+## Compile and run the project
 
-## Arquitetura
+```bash
+# development
+$ npm run start
 
-A arquitetura desta API segue um padrão RESTful, proporcionando uma forma padronizada de interação com os recursos do sistema. As principais tecnologias utilizadas são:
+# watch mode
+$ npm run start:dev
 
-- **[Spring Boot](https://spring.io/projects/spring-boot)**: Framework Java para o desenvolvimento de aplicações web robustas e escaláveis.
-- **[Next.js](https://nextjs.org/)**: Framework React para o desenvolvimento do front-end.
-- **[PostgreSQL](https://www.postgresql.org/)**: Sistema de gerenciamento de banco de dados relacional robusto.
+# production mode
+$ npm run start:prod
+```
 
-## Banco de Dados
+## Run tests
 
-A modelagem do banco de dados do ViaBus foi cuidadosamente planejada para garantir a eficiência e integridade dos dados. Abaixo, está o diagrama relacional que ilustra a estrutura das tabelas, seus relacionamentos e as principais entidades do sistema.
+```bash
+# unit tests
+$ npm run test
 
-![Esquema Relacional - Viabus](https://github.com/user-attachments/assets/8ec2e5fc-f356-449a-9213-317b14c78c4b)
+# e2e tests
+$ npm run test:e2e
 
-### Principais Entidades
+# test coverage
+$ npm run test:cov
+```
 
-- **User**: Tabela que armazena informações dos usuários do sistema, sejam clientes, administradores ou funcionários.
-- **Ticket**: Tabela responsável por armazenar os registros de bilhetes comprados ou utilizados pelos usuários.
-- **Route**: Representa as rotas de ônibus disponíveis no sistema.
-- **Stop**: Tabela que armazena as paradas de ônibus, associadas às rotas.
-- **Trip**: Contém os detalhes de cada viagem, vinculando rotas e horários específicos.
+## Deployment
 
-### Relacionamentos
+When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
 
-- **One-to-Many**: Muitos dos relacionamentos no sistema seguem este padrão, como a relação entre `User` e `Ticket`, onde um usuário pode possuir vários tickets.
-- **Many-to-Many**: Certas relações, como entre `Route` e `Stop`, são implementadas usando tabelas intermediárias para capturar o relacionamento de muitos para muitos.
+If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
 
-O modelo foi implementado utilizando PostgreSQL.
+```bash
+$ npm install -g mau
+$ mau deploy
+```
 
-### Diagrama Simplificado
+With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
 
-Front-end (Next.js) <--> API (Spring Boot) <--> Banco de Dados (PostgreSQL)
+## Resources
 
-## Instalação
+Check out a few resources that may come in handy when working with NestJS:
 
-### Pré-requisitos
+- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
+- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
+- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
+- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
+- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
+- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
+- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
+- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
 
-- Java 17 ou superior
-- Maven 3.8+
-- PostgreSQL 16
-- Node.js (para o front-end)
+## Support
 
-### Passos para Instalação
+Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
 
-1. Clone o repositório:
-   ```bash
-   git@github.com:ViaBus/viabus-back-end.git
-   ```
-2. Instale as dependências do projeto Java:
-   ```bash
-   mvn clean install
-   ```
-3. Configure o arquivo `application.properties` com as credenciais do banco de dados no diretório `src/main/resources`:
-   ```properties
-   spring.datasource.url=jdbc:postgresql://localhost:5432/viabus
-   spring.datasource.username=seu_usuario
-   spring.datasource.password=sua_senha
-   ```
-4. Execute o projeto:
-   ```bash
-   mvn spring-boot:run
-   ```
-5. Acesse a API em `http://localhost:8080`.
+## Stay in touch
 
-## Rotas
+- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
+- Website - [https://nestjs.com](https://nestjs.com/)
+- Twitter - [@nestframework](https://twitter.com/nestframework)
 
-### Usuários (/users)
+## License
 
-Estas rotas gerenciam informações dos usuários, incluindo endereços, telefones e funções.
-
-- **GET /users**: Retorna uma lista de todos os usuários.
-- **GET /users/{id}**: Retorna um usuário específico pelo seu ID.
-- **POST /users**: Cria um novo usuário.
-- **PUT /users/{id}**: Atualiza os dados de um usuário específico.
-- **DELETE /users/{id}**: Remove um usuário.
-
-**Relacionadas:**
-
-- **GET /users/{id}/address**: Retorna o endereço do usuário.
-- **POST /users/{id}/address**: Cria um endereço para o usuário.
-- **PUT /users/{id}/address**: Atualiza o endereço do usuário.
-- **GET /users/{id}/phones**: Retorna os telefones do usuário.
-- **POST /users/{id}/phones**: Adiciona um telefone para o usuário.
-- **DELETE /users/{id}/phones/{phone_id}**: Remove um telefone específico do usuário.
-- **GET /users/{id}/roles**: Retorna os papéis (roles) associados ao usuário.
-- **POST /users/{id}/roles**: Adiciona um papel para o usuário.
-
-### Tickets (/tickets)
-
-Rotas para gerenciamento de tickets, incluindo informações de pagamento.
-
-- **GET /tickets**: Retorna todos os tickets.
-- **GET /tickets/{id}**: Retorna informações de um ticket específico.
-- **POST /tickets**: Cria um novo ticket.
-- **PUT /tickets/{id}**: Atualiza um ticket específico.
-- **DELETE /tickets/{id}**: Remove um ticket.
-
-**Relacionadas:**
-
-- **GET /tickets/{id}/payment**: Retorna informações de pagamento de um ticket.
-- **POST /tickets/{id}/payment**: Realiza o pagamento de um ticket.
-
-### Paradas (/stops)
-
-Gerenciamento de paradas e endereços de paradas.
-
-- **GET /stops**: Retorna todas as paradas.
-- **GET /stops/{id}**: Retorna uma parada específica.
-- **POST /stops**: Cria uma nova parada.
-- **PUT /stops/{id}**: Atualiza uma parada.
-- **DELETE /stops/{id}**: Remove uma parada.
-
-**Relacionadas:**
-
-- **GET /stops/{id}/address**: Retorna o endereço da parada.
-- **POST /stops/{id}/address**: Cria um endereço para a parada.
-- **PUT /stops/{id}/address**: Atualiza o endereço da parada.
-
-### Rotas (/routes)
-
-Gerenciamento de rotas de viagem.
-
-- **GET /routes**: Retorna todas as rotas disponíveis.
-- **GET /routes/{id}**: Retorna informações de uma rota específica.
-- **POST /routes**: Cria uma nova rota.
-- **PUT /routes/{id}**: Atualiza uma rota.
-- **DELETE /routes/{id}**: Remove uma rota.
-
-**Relacionadas:**
-
-- **GET /routes/{id}/stops**: Retorna todas as paradas associadas a uma rota.
-- **POST /routes/{id}/stops**: Adiciona uma parada a uma rota, especificando a ordem.
-- **GET /routes/{id}/schedule**: Retorna a agenda (horário) da rota.
-- **POST /routes/{id}/schedule**: Cria ou atualiza a agenda da rota.
-
-### Viagens (/trips)
-
-Gerenciamento de viagens associadas a uma rota.
-
-- **GET /trips**: Retorna todas as viagens.
-- **GET /trips/{id}**: Retorna uma viagem específica.
-- **POST /trips**: Cria uma nova viagem.
-- **PUT /trips/{id}**: Atualiza uma viagem existente.
-- **DELETE /trips/{id}**: Remove uma viagem.
-
-### Preços de Rota (/route-prices)
-
-Gerenciamento dos preços entre as paradas de origem e destino.
-
-- **GET /route-prices**: Retorna todos os preços das rotas.
-- **GET /route-prices/{id}**: Retorna um preço específico de rota.
-- **POST /route-prices**: Cria um novo preço para uma rota (incluindo parada de origem e destino).
-- **PUT /route-prices/{id}**: Atualiza um preço específico de rota.
-- **DELETE /route-prices/{id}**: Remove um preço específico de rota.
-
-## Autenticação
-
-O sistema de autenticação permanece o mesmo, utilizando OAuth 2.0 via Google e JSON Web Tokens (JWT), com a API Spring Boot lidando com a verificação e autorização.
+Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
