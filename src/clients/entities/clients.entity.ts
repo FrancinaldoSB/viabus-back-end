@@ -1,8 +1,7 @@
-import { Column, Entity, PrimaryGeneratedColumn, ManyToOne } from 'typeorm';
-import { Company } from '../../company/entities/company.entity';
+import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
 
-@Entity('users')
-export class User {
+@Entity('clients')
+export class Client {
   @PrimaryGeneratedColumn('uuid', { name: 'id' })
   id: string;
 
@@ -24,12 +23,6 @@ export class User {
   @Column({ name: 'photo_url', type: 'varchar', length: 255 })
   photoUrl: string;
 
-  @Column({ name: 'role', type: 'enum', enum: ['admin', 'employee'] })
-  role: string;
-
-  @ManyToOne(() => Company, (company) => company.users)
-  company: Company;
-
   @Column({
     name: 'created_at',
     type: 'timestamp',
@@ -43,4 +36,5 @@ export class User {
     default: () => 'CURRENT_TIMESTAMP',
   })
   updatedAt: Date;
+  
 }
