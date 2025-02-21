@@ -1,5 +1,5 @@
-import { Column, Entity, PrimaryGeneratedColumn, ManyToOne } from 'typeorm';
-import { Company } from '../../company/entities/company.entity';
+import { UserCompanyRole } from './user-company-roles.entity';
+import { Column, Entity, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
 
 @Entity('users')
 export class User {
@@ -15,20 +15,12 @@ export class User {
   @Column({ name: 'phone', type: 'varchar', length: 11 })
   phone: string;
 
-  @Column({ name: 'gender', type: 'varchar', length: 1 })
-  gender: string;
-
-  @Column({ name: 'birth_date', type: 'date' })
-  birthDate: Date;
-
   @Column({ name: 'photo_url', type: 'varchar', length: 255 })
   photoUrl: string;
 
-  @Column({ name: 'role', type: 'enum', enum: ['admin', 'employee'] })
-  role: string;
-
-  @ManyToOne(() => Company, (company) => company.users)
-  company: Company;
+  // Relacionamento com os papéis do usuário em empresas
+  @OneToMany(() => UserCompanyRole, (userCompanyRole) => userCompanyRole.user)
+  companyRoles: UserCompanyRole[];
 
   @Column({
     name: 'created_at',
@@ -41,6 +33,7 @@ export class User {
     name: 'updated_at',
     type: 'timestamp',
     default: () => 'CURRENT_TIMESTAMP',
+    onUpdate: 'CURRENT_TIMESTAMP',
   })
   updatedAt: Date;
 }
