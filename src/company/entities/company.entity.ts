@@ -6,7 +6,7 @@ import {
   BeforeInsert,
   BeforeUpdate,
 } from 'typeorm';
-import { UserCompanyRole } from '../../user-company-roles/entities/user-company-roles.entity';
+import { UserCompanyRole } from '../../users/entities/user-company-roles.entity';
 
 @Entity('companies')
 export class Company {

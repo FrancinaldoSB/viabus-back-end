@@ -1,4 +1,4 @@
-import { UserCompanyRole } from '../../user-company-roles/entities/user-company-roles.entity';
+import { UserCompanyRole } from './user-company-roles.entity';
 import { Column, Entity, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
 
 @Entity('users')

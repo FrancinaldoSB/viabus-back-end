@@ -1,8 +1,17 @@
-import { Entity, ManyToOne, PrimaryGeneratedColumn, Column } from 'typeorm';
-import { User } from '../../users/entities/user.entity';
+import {
+  Entity,
+  ManyToOne,
+  Column,
+  OneToMany,
+  PrimaryGeneratedColumn,
+  Unique,
+} from 'typeorm';
+import { User } from './user.entity';
+import { RolePermission } from './role-permission.entity';
 import { Company } from 'src/company/entities/company.entity';
 
 @Entity('user_company_roles')
+@Unique(['user', 'company']) // Evita duplicação de usuário na mesma empresa
 export class UserCompanyRole {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -21,6 +30,16 @@ export class UserCompanyRole {
     default: 'client',
   })
   role: 'client' | 'employee' | 'admin' | 'owner';
+
+  @OneToMany(() => RolePermission, (rolePermission) => rolePermission.role)
+  permissions: RolePermission[];
+
+  @Column({
+    type: 'enum',
+    enum: ['active', 'inactive'],
+    default: 'active',
+  })
+  status: 'active' | 'inactive';
 
   @Column({
     name: 'created_at',

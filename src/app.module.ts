@@ -8,7 +8,6 @@ import { StopsModule } from './stops/stops.module';
 import { TicketsModule } from './tickets/tickets.module';
 import { TripsModule } from './trips/trips.module';
 import { AuthModule } from './auth/auth.module';
-import { UserCompanyRolesModule } from './user-company-roles/user-company-roles.module';
 
 @Module({
   imports: [
@@ -23,7 +22,6 @@ import { UserCompanyRolesModule } from './user-company-roles/user-company-roles.
     StopsModule,
     TicketsModule,
     TripsModule,
-    UserCompanyRolesModule,
   ],
 })
 export class AppModule {}
