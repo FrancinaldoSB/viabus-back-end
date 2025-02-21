@@ -6,6 +6,7 @@ import {
   Patch,
   Param,
   Delete,
+  ConflictException,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -43,27 +44,21 @@ export class UsersController {
     return this.usersService.remove(id);
   }
 
-  // rota para atribuir um papel a um usuário
-  @Post(':id/company-roles')
-  assignCompanyRole(
+  @Post(':id/roles')
+  assignRole(
     @Param('id') userId: string,
     @Body() assignRoleDto: AssignCompanyRoleDto,
   ) {
     return this.usersService.assignCompanyRole(userId, assignRoleDto);
   }
 
-  // rota para remover um papel de um usuário
-  @Delete(':userId/company-roles/:roleId')
-  removeCompanyRole(
-    @Param('userId') userId: string,
-    @Param('roleId') roleId: string,
-  ) {
+  @Delete(':userId/roles/:roleId')
+  removeRole(@Param('userId') userId: string, @Param('roleId') roleId: string) {
     return this.usersService.removeCompanyRole(userId, roleId);
   }
 
-  // rota para listar os papéis de um usuário
-  @Get(':id/company-roles')
-  getUserCompanyRoles(@Param('id') userId: string) {
+  @Get(':id/roles')
+  getUserRoles(@Param('id') userId: string) {
     return this.usersService.getUserCompanyRoles(userId);
   }
 }

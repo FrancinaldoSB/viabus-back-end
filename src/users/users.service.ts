@@ -1,11 +1,14 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UserCompanyRole } from './entities/user-company-roles.entity';
 import { AssignCompanyRoleDto } from './dto/assign-company-role.dto';
-import { UserRole } from './enum/user-role.enum';
 
 @Injectable()
 export class UsersService {
@@ -17,20 +20,28 @@ export class UsersService {
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
+    const existingUser = await this.userRepository.findOne({
+      where: { email: createUserDto.email },
+    });
+
+    if (existingUser) {
+      throw new ConflictException('Usuário com este email já existe');
+    }
+
     const user = this.userRepository.create(createUserDto);
     return await this.userRepository.save(user);
   }
 
   async findAll(): Promise<User[]> {
     return await this.userRepository.find({
-      relations: ['companyRoles', 'companyRoles.role', 'companyRoles.company'],
+      relations: ['companyRoles', 'companyRoles.company'],
     });
   }
 
   async findOne(id: string): Promise<User> {
     const user = await this.userRepository.findOne({
       where: { id },
-      relations: ['companyRoles', 'companyRoles.role', 'companyRoles.company'],
+      relations: ['companyRoles', 'companyRoles.company'],
     });
     if (!user) {
       throw new NotFoundException(`Usuário com ID ${id} não encontrado`);
@@ -43,6 +54,17 @@ export class UsersService {
     updateUserDto: Partial<CreateUserDto>,
   ): Promise<User> {
     const user = await this.findOne(id);
+
+    if (updateUserDto.email && updateUserDto.email !== user.email) {
+      const existingUser = await this.userRepository.findOne({
+        where: { email: updateUserDto.email },
+      });
+
+      if (existingUser) {
+        throw new ConflictException('Email já está em uso');
+      }
+    }
+
     Object.assign(user, updateUserDto);
     return await this.userRepository.save(user);
   }
@@ -58,23 +80,31 @@ export class UsersService {
   ): Promise<UserCompanyRole> {
     const user = await this.findOne(userId);
 
-    const userCompanyRole = this.userCompanyRoleRepository.create({
-      user: user,
-      company: { id: assignRoleDto.companyId } as any,
-      role: assignRoleDto.role as UserRole,
-      status: assignRoleDto.status,
+    // Verifica se o usuário já tem um papel nesta empresa
+    const existingRole = await this.userCompanyRoleRepository.findOne({
+      where: {
+        user: { id: userId },
+        company: { id: assignRoleDto.companyId },
+      },
     });
+
+    if (existingRole) {
+      throw new ConflictException('Usuário já possui um papel nesta empresa');
+    }
+
+    const userCompanyRole = new UserCompanyRole();
+    userCompanyRole.user = user;
+    userCompanyRole.company = { id: assignRoleDto.companyId } as any;
+    userCompanyRole.role = assignRoleDto.role;
+    userCompanyRole.status = assignRoleDto.status;
 
     return await this.userCompanyRoleRepository.save(userCompanyRole);
   }
 
-  async removeCompanyRole(
-    userId: string,
-    companyRoleId: string,
-  ): Promise<void> {
+  async removeCompanyRole(userId: string, roleId: string): Promise<void> {
     const userCompanyRole = await this.userCompanyRoleRepository.findOne({
       where: {
-        id: companyRoleId,
+        id: roleId,
         user: { id: userId },
       },
     });
@@ -87,9 +117,15 @@ export class UsersService {
   }
 
   async getUserCompanyRoles(userId: string): Promise<UserCompanyRole[]> {
-    return await this.userCompanyRoleRepository.find({
+    const roles = await this.userCompanyRoleRepository.find({
       where: { user: { id: userId } },
-      relations: ['company', 'role', 'role.permissions'],
+      relations: ['company'],
     });
+
+    if (!roles.length) {
+      throw new NotFoundException(`Nenhum papel encontrado para este usuário`);
+    }
+
+    return roles;
   }
 }
