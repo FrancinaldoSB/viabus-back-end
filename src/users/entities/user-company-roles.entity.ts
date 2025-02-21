@@ -9,6 +9,8 @@ import {
 import { User } from './user.entity';
 import { RolePermission } from './role-permission.entity';
 import { Company } from 'src/company/entities/company.entity';
+import { UserRole } from '../enum/user-role.enum';
+import { UserStatus } from '../enum/user-status.enum';
 
 @Entity('user_company_roles')
 @Unique(['user', 'company']) // Evita duplicação de usuário na mesma empresa
@@ -26,20 +28,20 @@ export class UserCompanyRole {
 
   @Column({
     type: 'enum',
-    enum: ['client', 'employee', 'admin', 'owner'],
-    default: 'client',
+    enum: UserRole,
+    default: UserRole.CLIENT,
   })
-  role: 'client' | 'employee' | 'admin' | 'owner';
+  role: UserRole;
 
   @OneToMany(() => RolePermission, (rolePermission) => rolePermission.role)
   permissions: RolePermission[];
 
   @Column({
     type: 'enum',
-    enum: ['active', 'inactive'],
-    default: 'active',
+    enum: UserStatus,
+    default: UserStatus.ACTIVE,
   })
-  status: 'active' | 'inactive';
+  status: UserStatus;
 
   @Column({
     name: 'created_at',

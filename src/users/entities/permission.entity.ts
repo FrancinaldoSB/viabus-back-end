@@ -1,10 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
 import { RolePermission } from './role-permission.entity';
-
-export enum PermissionAction {
-  WRITE = 'WRITE',
-  READ = 'READ',
-}
+import { PermissionAction } from '../enum/permission-action.enum';
 
 @Entity('permissions')
 export class Permission {
