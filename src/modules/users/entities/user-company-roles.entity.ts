@@ -6,9 +6,9 @@ import {
   Unique,
 } from 'typeorm';
 import { User } from './user.entity';
-import { Company } from 'src/company/entities/company.entity';
 import { UserRole } from '../enum/user-role.enum';
 import { UserStatus } from '../enum/user-status.enum';
+import { Company } from 'src/modules/companies/entities/company.entity';
 
 @Entity('user_company_roles')
 @Unique(['user', 'company'])

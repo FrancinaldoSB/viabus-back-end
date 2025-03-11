@@ -8,7 +8,7 @@ import {
   Put,
 } from '@nestjs/common';
 import { CreateStopDto } from './dto/create-stop.dto';
-import { StopsService } from './stops.service';
+import { StopsService } from './stop.service';
 
 @Controller('stops')
 export class StopsController {

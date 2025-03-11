@@ -1,13 +1,13 @@
 import { Module } from '@nestjs/common';
-import { DatabaseModule } from './database/database.module';
+import { DatabaseModule } from './core/database/database.module';
 import { ConfigModule } from '@nestjs/config';
-import { CompanyModule } from './company/company.module';
-import { UsersModule } from './users/users.module';
-import { RoutesModule } from './routes/routes.module';
-import { StopsModule } from './stops/stops.module';
-import { TicketsModule } from './tickets/tickets.module';
-import { TripsModule } from './trips/trips.module';
-import { AuthModule } from './auth/auth.module';
+import { UsersModule } from './modules/users/user.module';
+import { RoutesModule } from './modules/routes/route.module';
+import { StopsModule } from './modules/stops/stop.module';
+import { TicketsModule } from './modules/tickets/ticket.module';
+import { TripsModule } from './modules/trips/trip.module';
+import { AuthModule } from './modules/auth/auth.module';
+import { CompanyModule } from './modules/companies/company.module';
 
 @Module({
   imports: [

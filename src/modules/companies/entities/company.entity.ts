@@ -1,3 +1,4 @@
+import { UserCompanyRole } from 'src/modules/users/entities/user-company-roles.entity';
 import {
   Column,
   Entity,
@@ -6,7 +7,6 @@ import {
   BeforeInsert,
   BeforeUpdate,
 } from 'typeorm';
-import { UserCompanyRole } from '../../users/entities/user-company-roles.entity';
 
 @Entity('companies')
 export class Company {

@@ -8,7 +8,7 @@ import {
   Delete,
   ConflictException,
 } from '@nestjs/common';
-import { UsersService } from './users.service';
+import { UsersService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { AssignCompanyRoleDto } from './dto/assign-company-role.dto';
 
