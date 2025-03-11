@@ -1,12 +1,16 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { passportJwtSecret } from 'jwks-rsa';
 import { ConfigService } from '@nestjs/config';
+import { AuthService } from './auth.service';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-  constructor(private configService: ConfigService) {
+  constructor(
+    private configService: ConfigService,
+    private authService: AuthService,
+  ) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       audience: configService.getOrThrow<string>('AUTH0_AUDIENCE'),
@@ -22,10 +26,23 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(payload: any) {
-    return {
-      userId: payload.sub,
-      email: payload.email,
-      companyId: payload.companyId,
-    };
+    try {
+      // Verificar se o usuário existe no nosso sistema
+      const { user, companies } = await this.authService.validateUser({
+        email: payload.email,
+        name: payload.name,
+        picture: payload.picture,
+      });
+
+      // Adicionar as empresas ao payload
+      return {
+        userId: user.id,
+        email: user.email,
+        name: user.name,
+        companies,
+      };
+    } catch (error) {
+      throw new UnauthorizedException('Usuário não autorizado');
+    }
   }
 }

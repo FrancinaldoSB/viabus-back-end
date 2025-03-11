@@ -128,4 +128,17 @@ export class UsersService {
 
     return roles;
   }
+
+  async findByEmail(email: string): Promise<User[]> {
+    const users = await this.userRepository.find({
+      where: { email },
+      relations: ['companyRoles', 'companyRoles.company'],
+    });
+
+    if (!users.length) {
+      throw new NotFoundException(`Usuário com email ${email} não encontrado`);
+    }
+
+    return users;
+  }
 }

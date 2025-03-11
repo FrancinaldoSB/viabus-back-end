@@ -1,18 +1,15 @@
 import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { UserRole } from '../../users/enum/user-role.enum';
-import { UsersService } from '../../users/user.service';
+import { ROLES_KEY } from '../decorators/roles.decorator';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
-  constructor(
-    private reflector: Reflector,
-    private usersService: UsersService,
-  ) {}
+  constructor(private reflector: Reflector) {}
 
-  async canActivate(context: ExecutionContext): Promise<boolean> {
+  canActivate(context: ExecutionContext): boolean {
     const requiredRoles = this.reflector.getAllAndOverride<UserRole[]>(
-      'roles',
+      ROLES_KEY,
       [context.getHandler(), context.getClass()],
     );
 
@@ -20,17 +17,14 @@ export class RolesGuard implements CanActivate {
       return true;
     }
 
-    const request = context.switchToHttp().getRequest();
-    const user = request.user;
-    const companyId = request.params.companyId || request.body.companyId;
+    const { user } = context.switchToHttp().getRequest();
 
-    if (!user || !companyId) {
+    // Verificar se o usuário tem uma empresa selecionada
+    if (!user.currentCompany) {
       return false;
     }
 
-    const userRoles = await this.usersService.getUserCompanyRoles(user.userId);
-    const companyRole = userRoles.find((role) => role.company.id === companyId);
-
-    return !!(companyRole && requiredRoles.includes(companyRole.role));
+    // Verificar se o papel do usuário na empresa atual está entre os papéis permitidos
+    return requiredRoles.includes(user.currentCompany.role);
   }
 }

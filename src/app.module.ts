@@ -8,6 +8,9 @@ import { TicketsModule } from './modules/tickets/ticket.module';
 import { TripsModule } from './modules/trips/trip.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { CompanyModule } from './modules/companies/company.module';
+import { APP_GUARD } from '@nestjs/core';
+import { JwtAuthGuard } from './modules/auth/guards/jwt-auth.guard';
+import { RolesGuard } from './modules/auth/guards/roles.guard';
 
 @Module({
   imports: [
@@ -22,6 +25,16 @@ import { CompanyModule } from './modules/companies/company.module';
     StopsModule,
     TicketsModule,
     TripsModule,
+  ],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: RolesGuard,
+    },
   ],
 })
 export class AppModule {}
