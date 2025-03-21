@@ -19,7 +19,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
           synchronize: true,
           ssl: {
             rejectUnauthorized: false,
-          }
+            require: true,
+          },
         };
       },
       inject: [ConfigService],
