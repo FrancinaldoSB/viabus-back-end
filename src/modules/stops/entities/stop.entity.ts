@@ -1,7 +1,14 @@
-import { Column, Entity, PrimaryColumn, PrimaryGeneratedColumn } from "typeorm";
+import {
+  Column,
+  Entity,
+  PrimaryColumn,
+  PrimaryGeneratedColumn,
+  OneToMany,
+} from 'typeorm';
+import { RouteStop } from '../../routes/entities/route-stop.entity';
 
 @Entity('stops')
-export class Stop{
+export class Stop {
   @PrimaryGeneratedColumn('uuid', { name: 'id' })
   id: string;
 
@@ -13,4 +20,7 @@ export class Stop{
 
   @Column({ name: 'longitude', type: 'varchar', length: 100 })
   longitude: string;
+
+  @OneToMany(() => RouteStop, (routeStop) => routeStop.stop)
+  routeStops: RouteStop[];
 }
