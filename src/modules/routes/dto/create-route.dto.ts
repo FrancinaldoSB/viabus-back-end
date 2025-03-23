@@ -1,4 +1,19 @@
-import { IsString } from "class-validator";
+import {
+  IsString,
+  IsArray,
+  IsUUID,
+  ValidateNested,
+  IsNumber,
+} from 'class-validator';
+import { Type } from 'class-transformer';
+
+class RouteStopDto {
+  @IsUUID()
+  stopId: string;
+
+  @IsNumber()
+  order: number;
+}
 
 export class CreateRouteDto {
   @IsString()
@@ -10,9 +25,11 @@ export class CreateRouteDto {
   @IsString()
   estimatedDuration: string;
 
-  @IsString()
-  distance: string;
+  @IsNumber()
+  distance: number;
 
-
-
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => RouteStopDto)
+  stops: RouteStopDto[];
 }
