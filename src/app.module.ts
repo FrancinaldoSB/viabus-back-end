@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, NestModule, MiddlewareConsumer } from '@nestjs/common';
 import { DatabaseModule } from './core/database/database.module';
 import { ConfigModule } from '@nestjs/config';
 import { UsersModule } from './modules/users/user.module';
@@ -11,6 +11,7 @@ import { CompanyModule } from './modules/companies/company.module';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './modules/auth/guards/jwt-auth.guard';
 import { RolesGuard } from './modules/auth/guards/roles.guard';
+import { CurrentCompanyMiddleware } from './modules/auth/middlewares/current-company.middleware';
 
 @Module({
   imports: [
@@ -38,4 +39,8 @@ import { RolesGuard } from './modules/auth/guards/roles.guard';
     },
   ],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(CurrentCompanyMiddleware).forRoutes('*');
+  }
+}

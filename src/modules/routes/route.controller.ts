@@ -1,36 +1,49 @@
-import { Body, Controller, Delete, Get, Param, Post, Put } from "@nestjs/common";
-import { CreateRouteDto } from "./dto/create-route.dto";
-import { RouteService } from "./route.service";
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  Put,
+} from '@nestjs/common';
+import { CreateRouteDto } from './dto/create-route.dto';
+import { RouteService } from './route.service';
+import { CurrentCompany } from '../auth/decorators/current-company.decorator';
 
 @Controller('routes')
 export class RouteController {
-  constructor(private readonly routeService: RouteService) { }
-  
+  constructor(private readonly routeService: RouteService) {}
+
   @Get()
-  getAllRoutes() {
-    return this.routeService.getRoutes();
+  getAllRoutes(@CurrentCompany() company: any) {
+    return this.routeService.getRoutes(company.id);
   }
 
   @Get(':id')
-  getRoute(@Param('id') id: string) {
-    return this.routeService.getRoute(id);
+  getRoute(@Param('id') id: string, @CurrentCompany() company: any) {
+    return this.routeService.getRoute(id, company.id);
   }
 
   @Put(':id')
   updateRoute(
     @Param('id') id: string,
     @Body() updateRouteDto: Partial<CreateRouteDto>,
+    @CurrentCompany() company: any,
   ) {
-    return this.routeService.updateRoute(id, updateRouteDto);
+    return this.routeService.updateRoute(id, updateRouteDto, company.id);
   }
 
   @Post()
-  create(@Body() createRouteDto: CreateRouteDto) {
-    return this.routeService.create(createRouteDto);
+  create(
+    @Body() createRouteDto: CreateRouteDto,
+    @CurrentCompany() company: any,
+  ) {
+    return this.routeService.create(createRouteDto, company.id);
   }
 
   @Delete(':id')
-  removeRoute(@Param('id') id: string) {
-    return this.routeService.removeRoute(id);
+  removeRoute(@Param('id') id: string, @CurrentCompany() company: any) {
+    return this.routeService.removeRoute(id, company.id);
   }
 }

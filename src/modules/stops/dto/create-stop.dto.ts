@@ -10,6 +10,4 @@ export class CreateStopDto {
   @IsString()
   longitude: string;
 
-  @IsString()
-  address: string;
 }

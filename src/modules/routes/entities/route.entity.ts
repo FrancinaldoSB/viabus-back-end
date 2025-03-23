@@ -1,5 +1,13 @@
-import { Column, Entity, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
+import {
+  Column,
+  Entity,
+  PrimaryGeneratedColumn,
+  OneToMany,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
 import { RouteStop } from './route-stop.entity';
+import { Company } from '../../companies/entities/company.entity';
 
 @Entity('routes')
 export class Route {
@@ -20,6 +28,13 @@ export class Route {
 
   @Column({ name: 'distance', type: 'float' })
   distance: number;
+
+  @Column({ name: 'company_id', type: 'uuid' })
+  companyId: string;
+
+  @ManyToOne(() => Company)
+  @JoinColumn({ name: 'company_id' })
+  company: Company;
 
   @OneToMany(() => RouteStop, (routeStop) => routeStop.route)
   routeStops: RouteStop[];

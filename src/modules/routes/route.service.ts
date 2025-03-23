@@ -14,19 +14,26 @@ export class RouteService {
     private readonly dataSource: DataSource,
   ) {}
 
-  async getRoutes(): Promise<Route[]> {
-    return await this.routeRepository.find();
+  async getRoutes(companyId: string): Promise<Route[]> {
+    return await this.routeRepository.find({ where: { companyId } });
   }
 
-  async getRoute(id: string): Promise<Route> {
-    const route = await this.routeRepository.findOneBy({ id });
+  async getRoute(id: string, companyId: string): Promise<Route> {
+    const route = await this.routeRepository.findOne({
+      where: { id, companyId },
+    });
+
     if (!route) {
       throw new NotFoundException(`Rota com ID ${id} não encontrada`);
     }
+
     return route;
   }
 
-  async create(createRouteDto: CreateRouteDto): Promise<Route> {
+  async create(
+    createRouteDto: CreateRouteDto,
+    companyId: string,
+  ): Promise<Route> {
     // Inicia uma transação para garantir consistência
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
@@ -34,7 +41,11 @@ export class RouteService {
 
     try {
       // Cria a rota
-      const route = this.routeRepository.create(createRouteDto);
+      const route = this.routeRepository.create({
+        ...createRouteDto,
+        companyId,
+      });
+
       const savedRoute = await queryRunner.manager.save(route);
 
       // Cria os RouteStops para cada parada
@@ -61,13 +72,15 @@ export class RouteService {
   async updateRoute(
     id: string,
     updateRouteDto: Partial<CreateRouteDto>,
+    companyId: string,
   ): Promise<Route> {
-    const route = await this.getRoute(id);
+    const route = await this.getRoute(id, companyId);
     Object.assign(route, updateRouteDto);
     return await this.routeRepository.save(route);
   }
 
-  async removeRoute(id: string): Promise<void> {
-    await this.routeRepository.delete(id);
+  async removeRoute(id: string, companyId: string): Promise<void> {
+    const route = await this.getRoute(id, companyId);
+    await this.routeRepository.delete(route.id);
   }
 }
