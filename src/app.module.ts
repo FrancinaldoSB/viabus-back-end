@@ -16,6 +16,7 @@ import { RolesGuard } from './modules/auth/guards/roles.guard';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+      envFilePath: `${process.cwd()}/.env.${process.env.NODE_ENV}`,
     }),
     DatabaseModule,
     AuthModule,

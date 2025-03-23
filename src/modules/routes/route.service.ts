@@ -66,4 +66,8 @@ export class RouteService {
     Object.assign(route, updateRouteDto);
     return await this.routeRepository.save(route);
   }
+
+  async removeRoute(id: string): Promise<void> {
+    await this.routeRepository.delete(id);
+  }
 }
