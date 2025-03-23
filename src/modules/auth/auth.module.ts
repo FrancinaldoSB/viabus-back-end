@@ -7,6 +7,7 @@ import { UsersModule } from '../users/user.module';
 import { HttpModule } from '@nestjs/axios';
 import { AuthController } from './controllers/auth.controller';
 import { AuthService } from './auth.service';
+import { CurrentCompanyGuard } from './guards/current-company.guard';
 
 @Module({
   imports: [
@@ -16,7 +17,7 @@ import { AuthService } from './auth.service';
     HttpModule,
   ],
   controllers: [AuthController],
-  providers: [JwtStrategy, AuthService],
-  exports: [PassportModule, AuthService],
+  providers: [JwtStrategy, AuthService, CurrentCompanyGuard],
+  exports: [PassportModule, AuthService, CurrentCompanyGuard],
 })
 export class AuthModule {}
