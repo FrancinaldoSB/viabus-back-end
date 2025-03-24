@@ -15,8 +15,8 @@ export class Address {
   @Column({ name: 'number', type: 'varchar', length: 10 })
   number: string;
 
-  @Column({ name: 'complement', type: 'varchar', length: 100 })
-  complement: string;
+  @Column({ name: 'complement', type: 'varchar', length: 100, nullable: true })
+  complement?: string;
 
   @Column({ name: 'neighborhood', type: 'varchar', length: 100 })
   neighborhood: string;
@@ -27,11 +27,11 @@ export class Address {
   @Column({ name: 'state', type: 'varchar', length: 2 })
   state: string;
 
-  @Column({ name: 'longitude', type: 'varchar', length: 100 })
-  longitude: string;
+  @Column({ name: 'longitude', type: 'varchar', length: 100, nullable: true })
+  longitude?: string;
 
-  @Column({ name: 'latitude', type: 'varchar', length: 100 })
-  latitude: string;
+  @Column({ name: 'latitude', type: 'varchar', length: 100, nullable: true })
+  latitude?: string;
 
   @Column({ name: 'created_at', type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;

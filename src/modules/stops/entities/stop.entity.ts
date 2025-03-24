@@ -8,6 +8,7 @@ import {
 } from 'typeorm';
 import { RouteStop } from '../../routes/entities/route-stop.entity';
 import { Company } from '../../companies/entities/company.entity';
+import { Address } from '../../addresses/entities/address.entity';
 
 @Entity('stops')
 export class Stop {
@@ -17,11 +18,12 @@ export class Stop {
   @Column({ name: 'name', type: 'varchar', length: 100 })
   name: string;
 
-  @Column({ name: 'latitude', type: 'varchar', length: 100 })
-  latitude: string;
+  @ManyToOne(() => Address, { eager: true })
+  @JoinColumn({ name: 'address_id' })
+  address: Address;
 
-  @Column({ name: 'longitude', type: 'varchar', length: 100 })
-  longitude: string;
+  @Column({ name: 'address_id', type: 'uuid' })
+  addressId: string;
 
   @Column({ name: 'is_active', type: 'boolean', default: true })
   isActive?: boolean;
