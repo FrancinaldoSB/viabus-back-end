@@ -11,11 +11,13 @@ import { CompanyModule } from './modules/companies/company.module';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './modules/auth/guards/jwt-auth.guard';
 import { RolesGuard } from './modules/auth/guards/roles.guard';
+import { CurrentCompanyGuard } from './modules/auth/guards/current-company.guard';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+      envFilePath: `${process.cwd()}/.env.${process.env.NODE_ENV}`,
     }),
     DatabaseModule,
     AuthModule,
@@ -30,6 +32,10 @@ import { RolesGuard } from './modules/auth/guards/roles.guard';
     {
       provide: APP_GUARD,
       useClass: JwtAuthGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: CurrentCompanyGuard,
     },
     {
       provide: APP_GUARD,

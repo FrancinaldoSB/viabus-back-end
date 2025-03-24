@@ -7,30 +7,34 @@ export class RoutesController {
   constructor(private readonly routesService: RouteService) { }
   
   @Get()
-  getAllRoutes() {
-    return this.routesService.getRoutes();
+  getAllRoutes(@CurrentCompany() company: any) {
+    return this.routeService.getRoutes(company.id);
   }
 
   @Get(':id')
-  getRoute(@Param('id') id: string) {
-    return this.routesService.getRoute(id);
+  getRoute(@Param('id') id: string, @CurrentCompany() company: any) {
+    return this.routeService.getRoute(id, company.id);
   }
 
   @Put(':id')
   updateRoute(
     @Param('id') id: string,
     @Body() updateRouteDto: Partial<CreateRouteDto>,
+    @CurrentCompany() company: any,
   ) {
-    return this.routesService.updateRoute(id, updateRouteDto);
+    return this.routeService.updateRoute(id, updateRouteDto, company.id);
   }
 
   @Post()
-  create(@Body() createRouteDto: CreateRouteDto) {
-    return this.routesService.create(createRouteDto);
+  create(
+    @Body() createRouteDto: CreateRouteDto,
+    @CurrentCompany() company: any,
+  ) {
+    return this.routeService.create(createRouteDto, company.id);
   }
 
   @Delete(':id')
-  removeRoute(@Param('id') id: string) {
-    return this.routesService.removeRoute(id);
+  removeRoute(@Param('id') id: string, @CurrentCompany() company: any) {
+    return this.routeService.removeRoute(id, company.id);
   }
 }

@@ -22,6 +22,9 @@ export class RouteStop {
   @Column({ name: 'order', type: 'int' })
   order: number;
 
+  @Column({ name: 'departure_time', type: 'time', nullable: true })
+  departureTime: string;
+
   @ManyToOne(() => Route, (route) => route.routeStops)
   @JoinColumn({ name: 'route_id' })
   route: Route;

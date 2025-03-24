@@ -7,21 +7,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => {
-        const nodeEnv = configService.get<string>('NODE_ENV');
-
-        if (nodeEnv === 'production') {
-          return {
-            type: 'postgres',
-            url: configService.get<string>('DATABASE_URL'),
-            entities: [__dirname + '/../../**/*.entity{.ts,.js}'],
-            migrations: [__dirname + '/migrations/*{.ts,.js}'],
-            synchronize: true,
-            ssl: {
-              rejectUnauthorized: false,
-            },
-          };
-        }
-
         return {
           type: 'postgres',
           host: configService.get<string>('DB_HOST'),

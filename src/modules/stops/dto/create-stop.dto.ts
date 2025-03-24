@@ -1,15 +1,60 @@
-import { IsString } from "class-validator";
+import {
+  IsString,
+  IsBoolean,
+  IsOptional,
+  ValidateNested,
+} from 'class-validator';
+import { Type } from 'class-transformer';
+
+export class CreateAddressDto {
+  @IsString()
+  cep: string;
+
+  @IsString()
+  street: string;
+
+  @IsString()
+  number: string;
+
+  @IsString()
+  @IsOptional()
+  complement?: string;
+
+  @IsString()
+  neighborhood: string;
+
+  @IsString()
+  city: string;
+
+  @IsString()
+  state: string;
+
+  @IsString()
+  @IsOptional()
+  latitude?: string;
+
+  @IsString()
+  @IsOptional()
+  longitude?: string;
+}
 
 export class CreateStopDto {
   @IsString()
   name: string;
 
-  @IsString()
-  latitude: string;
+  @ValidateNested()
+  @Type(() => CreateAddressDto)
+  address: CreateAddressDto;
 
-  @IsString()
-  longitude: string;
+  @IsBoolean()
+  @IsOptional()
+  isActive?: boolean;
 
-  @IsString()
-  address: string;
+  @IsBoolean()
+  @IsOptional()
+  hasAccessibility?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  hasShelter?: boolean;
 }
