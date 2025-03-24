@@ -33,11 +33,10 @@ export class RouteService {
     await queryRunner.startTransaction();
 
     try {
-      // Cria a rota
       const route = this.routeRepository.create(createRouteDto);
       const savedRoute = await queryRunner.manager.save(route);
 
-      // Cria os RouteStops para cada parada
+      // Relacionamento com a parada
       if (createRouteDto.stops) {
         const routeStops = createRouteDto.stops.map((stop) => ({
           routeId: savedRoute.id,
@@ -66,4 +65,30 @@ export class RouteService {
     Object.assign(route, updateRouteDto);
     return await this.routeRepository.save(route);
   }
+
+  async removeRoute(id: string): Promise<void> {
+    // Inicia uma transação para garantir consistência
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      const route = await this.getRoute(id);
+
+      await queryRunner.manager.delete(RouteStop, { routeId: route.id });
+      await queryRunner.manager.remove(Route, route);
+
+      await queryRunner.commitTransaction();
+    } catch (err) {
+      await queryRunner.rollbackTransaction();
+      throw err;
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
+  // async removeRoute(id: string): Promise<void> {
+  //   const route = await this.getRoute(id);
+  //   await this.routeRepository.remove(route)
+  // }
 }
