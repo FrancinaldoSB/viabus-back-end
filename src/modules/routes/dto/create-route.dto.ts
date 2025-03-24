@@ -4,6 +4,7 @@ import {
   IsUUID,
   ValidateNested,
   IsNumber,
+  IsOptional,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
@@ -13,6 +14,10 @@ class RouteStopDto {
 
   @IsNumber()
   order: number;
+
+  @IsString()
+  @IsOptional()
+  departureTime: string;
 }
 
 export class CreateRouteDto {
