@@ -1,95 +1,163 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Stop } from './entities/stop.entity';
-import { Repository } from 'typeorm';
-import { CreateStopDto } from './dto/create-stop.dto';
+import { FindManyOptions, Repository } from 'typeorm';
+import { BaseCompanyService } from '../../common/base/base-company.service';
+import { PaginationParams } from '../../core/interfaces/api-response';
 import { Address } from '../addresses/entities/address.entity';
+import { CreateStopDto } from './dto/create-stop.dto';
+import { Stop } from './entities/stop.entity';
 
 @Injectable()
-export class StopsService {
+export class StopsService extends BaseCompanyService<Stop> {
   constructor(
     @InjectRepository(Stop)
-    private readonly stopRepository: Repository<Stop>,
+    protected readonly repository: Repository<Stop>,
     @InjectRepository(Address)
     private readonly addressRepository: Repository<Address>,
-  ) {}
-
-  async getStops(companyId: string): Promise<Stop[]> {
-    return await this.stopRepository.find({
-      where: { companyId },
-      relations: ['address'],
-    });
+  ) {
+    super(repository);
   }
 
-  async getStop(id: string, companyId: string): Promise<Stop> {
-    const stop = await this.stopRepository.findOne({
-      where: { id, companyId },
-      relations: ['address'],
-    });
+  protected getEntityName(): string {
+    return 'Stop';
+  }
 
-    if (!stop) {
-      throw new NotFoundException(`Parada com ID ${id} não encontrada`);
+  protected getDefaultFindOptions(): FindManyOptions<Stop> {
+    return {
+      relations: ['address', 'routeStops'],
+    };
+  }
+
+  // Método para buscar e contar com paginação
+  async findAndCount(
+    companyId: string,
+    pagination: PaginationParams,
+  ): Promise<[Stop[], number]> {
+    const {
+      page = 1,
+      limit = 10,
+      sortBy = 'name',
+      sortOrder = 'ASC',
+    } = pagination;
+
+    const options: FindManyOptions<Stop> = {
+      ...this.getDefaultFindOptions(),
+      where: { companyId },
+      skip: (page - 1) * limit,
+      take: limit,
+      order: {
+        [sortBy]: sortOrder,
+      },
+    };
+
+    return this.repository.findAndCount(options);
+  }
+
+  // Método específico para criar parada com validação de negócio
+  async createStop(
+    createStopDto: CreateStopDto,
+    companyId: string,
+  ): Promise<Stop> {
+    // Validações específicas de parada
+    if (!createStopDto.name || createStopDto.name.trim().length < 3) {
+      throw new Error('Nome da parada deve ter pelo menos 3 caracteres');
     }
 
-    return stop;
-  }
-
-  async create(createStopDto: CreateStopDto, companyId: string): Promise<Stop> {
-    // Criar o endereço primeiro
+    // Criar primeiro o endereço
     const address = this.addressRepository.create(createStopDto.address);
     const savedAddress = await this.addressRepository.save(address);
 
-    // Criar a parada vinculada ao endereço
-    const stop = this.stopRepository.create({
+    // Criar a parada com o endereço salvo
+    const stopData = {
       name: createStopDto.name,
       addressId: savedAddress.id,
-      isActive:
-        createStopDto.isActive !== undefined ? createStopDto.isActive : true,
-      hasAccessibility: createStopDto.hasAccessibility || false,
-      hasShelter: createStopDto.hasShelter || false,
+      isActive: createStopDto.isActive ?? true,
+      hasAccessibility: createStopDto.hasAccessibility ?? false,
+      hasShelter: createStopDto.hasShelter ?? false,
       companyId,
-    });
+    };
 
-    const savedStop = await this.stopRepository.save(stop);
-    savedStop.address = savedAddress;
-
-    return savedStop;
+    const stop = this.repository.create(stopData);
+    return this.repository.save(stop);
   }
 
+  // Método específico para atualizar parada com DTO
   async updateStop(
     id: string,
     updateStopDto: Partial<CreateStopDto>,
     companyId: string,
   ): Promise<Stop> {
-    const stop = await this.getStop(id, companyId);
-
-    // Se tiver atualizações de endereço
+    // Se há dados de endereço no DTO, atualizar o endereço primeiro
     if (updateStopDto.address) {
-      // Atualizar o endereço existente
-      Object.assign(stop.address, updateStopDto.address);
-      await this.addressRepository.save(stop.address);
+      const stop = await this.findOne(id, companyId);
+      await this.addressRepository.update(
+        stop.addressId,
+        updateStopDto.address,
+      );
     }
 
-    // Atualizar a parada, excluindo a propriedade address
+    // Converter DTO para formato da entidade (removendo address do DTO)
     const { address, ...stopData } = updateStopDto;
-    Object.assign(stop, stopData);
 
-    return await this.stopRepository.save(stop);
+    // Usar o método update herdado do BaseCompanyService
+    return this.update(id, stopData, companyId);
   }
 
-  async removeStop(id: string, companyId: string): Promise<void> {
-    const stop = await this.getStop(id, companyId);
-    const addressId = stop.addressId;
+  // Método específico para buscar paradas ativas
+  async findActiveStops(companyId: string): Promise<Stop[]> {
+    const options: FindManyOptions<Stop> = {
+      ...this.getDefaultFindOptions(),
+      where: { companyId, isActive: true } as any,
+    };
 
-    // Remover a parada
-    await this.stopRepository.remove(stop);
+    return this.repository.find(options);
+  }
 
-    // Remover o endereço associado
-    const address = await this.addressRepository.findOne({
-      where: { id: addressId },
+  // Método específico para buscar paradas por localização
+  async findStopsNearLocation(
+    companyId: string,
+    latitude: number,
+    longitude: number,
+    radiusKm: number = 1,
+  ): Promise<Stop[]> {
+    // Esta é uma implementação simplificada
+    // Em produção, você usaria PostGIS ou similar para busca geoespacial
+    const stops = await this.findAll(companyId);
+
+    return stops.filter((stop) => {
+      if (!stop.address?.latitude || !stop.address?.longitude) {
+        return false;
+      }
+
+      const lat1 = parseFloat(stop.address.latitude);
+      const lng1 = parseFloat(stop.address.longitude);
+      const distance = this.calculateDistance(latitude, longitude, lat1, lng1);
+
+      return distance <= radiusKm;
     });
-    if (address) {
-      await this.addressRepository.remove(address);
-    }
+  }
+
+  // Método auxiliar para calcular distância entre coordenadas
+  private calculateDistance(
+    lat1: number,
+    lon1: number,
+    lat2: number,
+    lon2: number,
+  ): number {
+    const R = 6371; // Raio da Terra em km
+    const dLat = this.deg2rad(lat2 - lat1);
+    const dLon = this.deg2rad(lon2 - lon1);
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(this.deg2rad(lat1)) *
+        Math.cos(this.deg2rad(lat2)) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+  }
+
+  private deg2rad(deg: number): number {
+    return deg * (Math.PI / 180);
   }
 }

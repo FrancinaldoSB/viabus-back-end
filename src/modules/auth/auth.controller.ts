@@ -1,13 +1,15 @@
-import {
-  Controller,
-  Post,
-  Body,
-  UnauthorizedException,
-  Get,
-  Headers,
-} from '@nestjs/common';
+import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
+import { CurrentUser } from 'src/common/decorators/current-user.decorator';
+import { Public } from 'src/common/decorators/public.decorator';
+import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { AuthService } from './auth.service';
-import { Public } from './decorators/public.decorator';
+import { LoginDto, RegisterDto } from './dto/login.dto';
+import {
+  AuthResponse,
+  JwtPayload,
+  MeResponse,
+  RegisterResponse,
+} from './interfaces/auth.interface';
 
 @Controller('auth')
 export class AuthController {
@@ -15,62 +17,19 @@ export class AuthController {
 
   @Public()
   @Post('login')
-  async login(@Body() body: { token: string }) {
-    if (!body.token) {
-      throw new UnauthorizedException('Token não fornecido');
-    }
-
-    try {
-      // Validar o token com o Auth0
-      const userData = await this.authService.validateToken(body.token);
-
-      // Validar o usuário no nosso sistema
-      const { user, companies } = await this.authService.validateUser(userData);
-
-      // Retornar os dados do usuário e suas empresas
-      return {
-        user: {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          phone: user.phone,
-          photoUrl: user.photoUrl,
-        },
-        companies,
-      };
-    } catch (error) {
-      throw new UnauthorizedException('Falha na autenticação');
-    }
+  async login(@Body() loginDto: LoginDto): Promise<AuthResponse> {
+    return this.authService.login(loginDto.email, loginDto.password);
   }
 
+  @Public()
+  @Post('register')
+  async register(@Body() registerDto: RegisterDto): Promise<RegisterResponse> {
+    return this.authService.register(registerDto);
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Get('me')
-  async getProfile(@Headers('authorization') authorization: string) {
-    if (!authorization) {
-      throw new UnauthorizedException('Token não fornecido');
-    }
-
-    try {
-      const token = authorization.replace('Bearer ', '');
-
-      // Validar o token com o Auth0
-      const userData = await this.authService.validateToken(token);
-
-      // Validar o usuário no nosso sistema
-      const { user, companies } = await this.authService.validateUser(userData);
-
-      // Retornar os dados do usuário e suas empresas
-      return {
-        user: {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          phone: user.phone,
-          photoUrl: user.photoUrl,
-        },
-        companies,
-      };
-    } catch (error) {
-      throw new UnauthorizedException('Falha na autenticação');
-    }
+  async getMe(@CurrentUser() user: JwtPayload): Promise<MeResponse> {
+    return this.authService.getMe(user.sub);
   }
 }

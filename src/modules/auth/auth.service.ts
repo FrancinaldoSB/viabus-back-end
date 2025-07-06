@@ -1,114 +1,122 @@
-import { Injectable, UnauthorizedException, Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { HttpService } from '@nestjs/axios';
+import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
+import { UserRole } from '../../core/enums/user-role.enum';
+import { UserStatus } from '../../core/enums/user-status.enum';
+import { CompanyService } from '../companies/company.service';
+import { Company } from '../companies/entities/company.entity';
 import { UsersService } from '../users/user.service';
-import { firstValueFrom } from 'rxjs';
-import { CreateUserDto } from '../users/dto/create-user.dto';
-import { User } from '../users/entities/user.entity';
-import { UserCompanyRole } from '../users/entities/user-company-roles.entity';
-import { AxiosResponse } from 'axios';
+import { RegisterDto } from './dto/login.dto';
+import {
+  AuthResponse,
+  JwtPayload,
+  MeResponse,
+  RegisterResponse,
+} from './interfaces/auth.interface';
 
 @Injectable()
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
 
   constructor(
-    private configService: ConfigService,
-    private httpService: HttpService,
-    private usersService: UsersService,
+    private readonly usersService: UsersService,
+    private readonly jwtService: JwtService,
+    private readonly companyService: CompanyService,
   ) {}
 
-  async validateToken(token: string): Promise<any> {
+  async login(email: string, password: string): Promise<AuthResponse> {
     try {
-      this.logger.debug('Validando token com Auth0');
-      // Verificar o token com o Auth0
-      const response: AxiosResponse<any> = await firstValueFrom(
-        this.httpService.get(
-          `${this.configService.get('AUTH0_DOMAIN')}/userinfo`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          },
-        ),
+      this.logger.debug(`Tentativa de login para: ${email}`);
+
+      const user = await this.usersService.findByEmailWithPassword(email);
+
+      const isPasswordValid = await this.usersService.validatePassword(
+        password,
+        user.password,
       );
 
-      this.logger.debug(
-        `Token validado com sucesso: ${JSON.stringify(response.data)}`,
-      );
-      return response.data;
+      if (!isPasswordValid) {
+        throw new UnauthorizedException('Credenciais inválidas');
+      }
+
+      this.logger.debug(`Login bem-sucedido para: ${email}`);
+
+      let company: Company | null = null;
+      if (user.companyId) {
+        company = await this.companyService.findOne(user.companyId);
+      }
+
+      const payload: JwtPayload = {
+        sub: user.id,
+        email: user.email,
+        role: user.role,
+        companyId: user.companyId,
+      };
+
+      const access_token = this.jwtService.sign(payload);
+
+      const { password: _, ...userWithoutPassword } = user;
+
+      return {
+        access_token,
+        user: userWithoutPassword,
+        company,
+      };
     } catch (error) {
-      this.logger.error(`Erro ao validar token: ${error.message}`);
-      throw new UnauthorizedException('Token inválido');
+      this.logger.error(`Erro no login: ${error.message}`);
+      if (error instanceof UnauthorizedException) {
+        throw error;
+      }
+      throw new UnauthorizedException('Credenciais inválidas');
     }
   }
 
-  async validateUser(userData: any): Promise<{
-    user: User;
-    companies: any[];
-  }> {
+  async register(registerDto: RegisterDto): Promise<RegisterResponse> {
     try {
-      this.logger.debug(`Validando usuário: ${JSON.stringify(userData)}`);
+      this.logger.debug(`Registrando novo usuário: ${registerDto.email}`);
 
-      // Verificar se o usuário já existe
-      let user: User;
-      try {
-        // Buscar pelo email
-        const existingUsers = await this.usersService.findByEmail(
-          userData.email,
-        );
-        this.logger.debug(
-          `Usuários encontrados com email ${userData.email}: ${existingUsers.length}`,
-        );
+      const userData = {
+        name: registerDto.name,
+        email: registerDto.email,
+        password: registerDto.password,
+        role: UserRole.CLIENT,
+        status: UserStatus.ACTIVE,
+      };
 
-        user = existingUsers[0];
-        this.logger.debug(`Usuário encontrado: ${JSON.stringify(user)}`);
-      } catch (error) {
-        this.logger.debug(
-          `Usuário não encontrado, criando novo: ${error.message}`,
-        );
-        // Usuário não existe, criar novo
-        const createUserDto: CreateUserDto = {
-          name: userData.name,
-          email: userData.email,
-          phone: userData.phone || '',
-          photoUrl: userData.picture || '',
-        };
-        user = await this.usersService.create(createUserDto);
-        this.logger.debug(`Novo usuário criado: ${JSON.stringify(user)}`);
-      }
+      const user = await this.usersService.create(userData);
 
-      // Buscar as empresas e papéis do usuário
-      let userCompanyRoles: UserCompanyRole[] = [];
-      try {
-        userCompanyRoles = await this.usersService.getUserCompanyRoles(user.id);
-        this.logger.debug(
-          `Papéis do usuário: ${JSON.stringify(userCompanyRoles)}`,
-        );
-      } catch (error) {
-        this.logger.warn(
-          `Usuário não tem papéis em empresas: ${error.message}`,
-        );
-        // Usuário não tem papéis em empresas ainda
-      }
+      this.logger.debug(`Usuário registrado com sucesso: ${user.email}`);
 
-      // Formatar as empresas para o formato esperado pelo front-end
-      const companies = userCompanyRoles.map((role) => ({
-        id: role.company.id,
-        name: role.company.tradeName,
-        slug: role.company.slug,
-        logoUrl: role.company.logoUrl,
-        role: role.role,
-      }));
+      const { password: _, ...userWithoutPassword } = user;
 
-      this.logger.debug(
-        `Empresas do usuário formatadas: ${JSON.stringify(companies)}`,
-      );
-
-      return { user, companies };
+      return {
+        message: 'Usuário criado com sucesso',
+        user: userWithoutPassword,
+      };
     } catch (error) {
-      this.logger.error(`Erro na validação do usuário: ${error.message}`);
-      throw new UnauthorizedException('Falha na autenticação do usuário');
+      this.logger.error(`Erro no registro: ${error.message}`);
+      throw error;
+    }
+  }
+
+  async getMe(userId: string): Promise<MeResponse> {
+    const user = await this.usersService.findOne(userId);
+
+    let company: Company | null = null;
+    if (user.companyId) {
+      company = await this.companyService.findOne(user.companyId);
+    }
+
+    return {
+      user,
+      company,
+    };
+  }
+
+  async validateUser(userId: string) {
+    try {
+      return await this.usersService.findOne(userId);
+    } catch (error) {
+      throw new UnauthorizedException('Usuário não encontrado');
     }
   }
 }

@@ -1,4 +1,3 @@
-import { UserCompanyRole } from 'src/modules/users/entities/user-company-roles.entity';
 import {
   Column,
   Entity,
@@ -7,6 +6,7 @@ import {
   BeforeInsert,
   BeforeUpdate,
 } from 'typeorm';
+import { User } from 'src/modules/users/entities/user.entity';
 
 @Entity('companies')
 export class Company {
@@ -31,15 +31,11 @@ export class Company {
   @Column({ name: 'phone', type: 'varchar', length: 11 })
   phone: string;
 
-  @Column({ name: 'logo_url', type: 'varchar', length: 255 })
+  @Column({ name: 'logo_url', type: 'varchar', length: 255, nullable: true })
   logoUrl: string;
 
-  // Relacionamento com os usuários e seus papéis
-  @OneToMany(
-    () => UserCompanyRole,
-    (userCompanyRole) => userCompanyRole.company,
-  )
-  userRoles: UserCompanyRole[];
+  @OneToMany(() => User, (user) => user.company)
+  users: User[];
 
   @Column({
     name: 'created_at',

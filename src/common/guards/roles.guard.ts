@@ -1,6 +1,6 @@
-import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
+import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { UserRole } from '../../users/enum/user-role.enum';
+import { UserRole } from '../../core/enums/user-role.enum';
 import { ROLES_KEY } from '../decorators/roles.decorator';
 
 @Injectable()
@@ -19,12 +19,11 @@ export class RolesGuard implements CanActivate {
 
     const { user } = context.switchToHttp().getRequest();
 
-    // Verificar se o usuário tem uma empresa selecionada
-    if (!user.currentCompany) {
+    if (!user) {
       return false;
     }
 
-    // Verificar se o papel do usuário na empresa atual está entre os papéis permitidos
-    return requiredRoles.includes(user.currentCompany.role);
+    // Verificar se o papel do usuário está entre os papéis permitidos
+    return requiredRoles.includes(user.role);
   }
 }

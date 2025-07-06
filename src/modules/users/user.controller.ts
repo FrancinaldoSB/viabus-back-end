@@ -10,7 +10,6 @@ import {
 } from '@nestjs/common';
 import { UsersService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
-import { AssignCompanyRoleDto } from './dto/assign-company-role.dto';
 
 @Controller('users')
 export class UsersController {
@@ -44,21 +43,8 @@ export class UsersController {
     return this.usersService.remove(id);
   }
 
-  @Post(':id/roles')
-  assignRole(
-    @Param('id') userId: string,
-    @Body() assignRoleDto: AssignCompanyRoleDto,
-  ) {
-    return this.usersService.assignCompanyRole(userId, assignRoleDto);
-  }
-
-  @Delete(':userId/roles/:roleId')
-  removeRole(@Param('userId') userId: string, @Param('roleId') roleId: string) {
-    return this.usersService.removeCompanyRole(userId, roleId);
-  }
-
-  @Get(':id/roles')
-  getUserRoles(@Param('id') userId: string) {
-    return this.usersService.getUserCompanyRoles(userId);
+  @Get('company/:companyId')
+  findByCompany(@Param('companyId') companyId: string) {
+    return this.usersService.findByCompany(companyId);
   }
 }

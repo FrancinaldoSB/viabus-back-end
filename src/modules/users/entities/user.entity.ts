@@ -1,39 +1,62 @@
-import { UserCompanyRole } from './user-company-roles.entity';
-import { Column, Entity, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
+import { UserRole } from '../../../core/enums/user-role.enum';
+import { UserStatus } from '../../../core/enums/user-status.enum';
+import { Company } from '../../companies/entities/company.entity';
 
 @Entity('users')
 export class User {
-  @PrimaryGeneratedColumn('uuid', { name: 'id' })
+  @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ name: 'name', type: 'varchar', length: 100 })
+  @Column({ type: 'varchar', length: 255 })
   name: string;
 
-  @Column({ name: 'email', type: 'varchar', length: 100, unique: true })
+  @Column({ type: 'varchar', length: 255, unique: true })
   email: string;
 
-  @Column({ name: 'phone', type: 'varchar', length: 11 })
+  @Column({ type: 'varchar', length: 255, nullable: true })
   phone: string;
 
-  @Column({ name: 'photo_url', type: 'varchar', length: 255 })
+  @Column({ type: 'varchar', length: 500, nullable: true })
   photoUrl: string;
 
-  // Relacionamento com os papéis do usuário em empresas
-  @OneToMany(() => UserCompanyRole, (userCompanyRole) => userCompanyRole.user)
-  companyRoles: UserCompanyRole[];
+  @Column({ type: 'varchar', length: 255 })
+  password: string;
 
   @Column({
-    name: 'created_at',
-    type: 'timestamp',
-    default: () => 'CURRENT_TIMESTAMP',
+    type: 'enum',
+    enum: UserRole,
+    default: UserRole.CLIENT,
   })
+  role: UserRole;
+
+  @Column({
+    type: 'enum',
+    enum: UserStatus,
+    default: UserStatus.ACTIVE,
+  })
+  status: UserStatus;
+
+  @Column({ name: 'company_id', type: 'uuid', nullable: true })
+  companyId: string;
+
+  @ManyToOne(() => Company, (company) => company.users, {
+    onDelete: 'SET NULL',
+  })
+  @JoinColumn({ name: 'company_id' })
+  company: Company;
+
+  @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 
-  @Column({
-    name: 'updated_at',
-    type: 'timestamp',
-    default: () => 'CURRENT_TIMESTAMP',
-    onUpdate: 'CURRENT_TIMESTAMP',
-  })
+  @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 }

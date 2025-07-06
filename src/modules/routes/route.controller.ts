@@ -1,40 +1,70 @@
-import { Body, Controller, Delete, Get, Param, Post, Put } from "@nestjs/common";
-import { CreateRouteDto } from "./dto/create-route.dto";
-import { RouteService } from "./route.service";
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  UseGuards,
+  UseInterceptors,
+} from '@nestjs/common';
+import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { UserRole } from '../../core/enums/user-role.enum';
+import { CompanyFilter } from '../../common/decorators/company-filter.decorator';
+import { Roles } from '../../common/decorators/roles.decorator';
+import {
+  CompanyFilterInterceptor,
+  UseCompanyFilter,
+} from '../../common/interceptors/company-filter.interceptor';
+import { CreateRouteDto } from './dto/create-route.dto';
+import { RouteService } from './route.service';
 
 @Controller('routes')
+@UseGuards(JwtAuthGuard)
+@UseInterceptors(CompanyFilterInterceptor)
 export class RoutesController {
-  constructor(private readonly routesService: RouteService) { }
-  
+  constructor(private readonly routesService: RouteService) {}
+
   @Get()
-  getAllRoutes(@CurrentCompany() company: any) {
-    return this.routeService.getRoutes(company.id);
+  @Roles(UserRole.ADMIN, UserRole.OWNER, UserRole.EMPLOYEE)
+  @UseCompanyFilter()
+  getAllRoutes(@CompanyFilter() companyId: string) {
+    return this.routesService.findAll(companyId);
   }
 
   @Get(':id')
-  getRoute(@Param('id') id: string, @CurrentCompany() company: any) {
-    return this.routeService.getRoute(id, company.id);
+  @Roles(UserRole.ADMIN, UserRole.OWNER, UserRole.EMPLOYEE)
+  @UseCompanyFilter()
+  getRoute(@Param('id') id: string, @CompanyFilter() companyId: string) {
+    return this.routesService.findOne(id, companyId);
   }
 
-  @Put(':id')
+  @Patch(':id')
+  @Roles(UserRole.ADMIN, UserRole.OWNER)
+  @UseCompanyFilter()
   updateRoute(
     @Param('id') id: string,
     @Body() updateRouteDto: Partial<CreateRouteDto>,
-    @CurrentCompany() company: any,
+    @CompanyFilter() companyId: string,
   ) {
-    return this.routeService.updateRoute(id, updateRouteDto, company.id);
+    return this.routesService.update(id, updateRouteDto, companyId);
   }
 
   @Post()
-  create(
+  @Roles(UserRole.ADMIN, UserRole.OWNER)
+  @UseCompanyFilter()
+  createRoute(
     @Body() createRouteDto: CreateRouteDto,
-    @CurrentCompany() company: any,
+    @CompanyFilter() companyId: string,
   ) {
-    return this.routeService.create(createRouteDto, company.id);
+    return this.routesService.create(createRouteDto, companyId);
   }
 
   @Delete(':id')
-  removeRoute(@Param('id') id: string, @CurrentCompany() company: any) {
-    return this.routeService.removeRoute(id, company.id);
+  @Roles(UserRole.ADMIN, UserRole.OWNER)
+  @UseCompanyFilter()
+  removeRoute(@Param('id') id: string, @CompanyFilter() companyId: string) {
+    return this.routesService.remove(id, companyId);
   }
 }

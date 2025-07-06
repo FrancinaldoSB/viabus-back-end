@@ -7,45 +7,114 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
-import { UserCompanyRole } from './entities/user-company-roles.entity';
-import { AssignCompanyRoleDto } from './dto/assign-company-role.dto';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
-    @InjectRepository(UserCompanyRole)
-    private readonly userCompanyRoleRepository: Repository<UserCompanyRole>,
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
+    // Verificar se email já existe
     const existingUser = await this.userRepository.findOne({
       where: { email: createUserDto.email },
     });
 
     if (existingUser) {
-      throw new ConflictException('Usuário com este email já existe');
+      throw new ConflictException('Email já está em uso');
     }
 
-    const user = this.userRepository.create(createUserDto);
+    // Hash da senha
+    const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
+
+    const user = this.userRepository.create({
+      ...createUserDto,
+      password: hashedPassword,
+    });
+
     return await this.userRepository.save(user);
   }
 
   async findAll(): Promise<User[]> {
     return await this.userRepository.find({
-      relations: ['companyRoles', 'companyRoles.company'],
+      relations: ['company'],
+      select: [
+        'id',
+        'name',
+        'email',
+        'phone',
+        'photoUrl',
+        'role',
+        'status',
+        'companyId',
+        'createdAt',
+        'updatedAt',
+      ],
     });
   }
 
   async findOne(id: string): Promise<User> {
     const user = await this.userRepository.findOne({
       where: { id },
-      relations: ['companyRoles', 'companyRoles.company'],
+      relations: ['company'],
+      select: [
+        'id',
+        'name',
+        'email',
+        'phone',
+        'photoUrl',
+        'role',
+        'status',
+        'companyId',
+        'createdAt',
+        'updatedAt',
+      ],
     });
+
     if (!user) {
       throw new NotFoundException(`Usuário com ID ${id} não encontrado`);
     }
+    return user;
+  }
+
+  async findByEmail(email: string): Promise<User> {
+    const user = await this.userRepository.findOne({
+      where: { email },
+      relations: ['company'],
+    });
+
+    if (!user) {
+      throw new NotFoundException(`Usuário com email ${email} não encontrado`);
+    }
+
+    return user;
+  }
+
+  async findByEmailWithPassword(email: string): Promise<User> {
+    const user = await this.userRepository.findOne({
+      where: { email },
+      relations: ['company'],
+      select: [
+        'id',
+        'name',
+        'email',
+        'password',
+        'phone',
+        'photoUrl',
+        'role',
+        'status',
+        'companyId',
+        'createdAt',
+        'updatedAt',
+      ],
+    });
+
+    if (!user) {
+      throw new NotFoundException(`Usuário com email ${email} não encontrado`);
+    }
+
     return user;
   }
 
@@ -55,14 +124,8 @@ export class UsersService {
   ): Promise<User> {
     const user = await this.findOne(id);
 
-    if (updateUserDto.email && updateUserDto.email !== user.email) {
-      const existingUser = await this.userRepository.findOne({
-        where: { email: updateUserDto.email },
-      });
-
-      if (existingUser) {
-        throw new ConflictException('Email já está em uso');
-      }
+    if (updateUserDto.password) {
+      updateUserDto.password = await bcrypt.hash(updateUserDto.password, 10);
     }
 
     Object.assign(user, updateUserDto);
@@ -74,71 +137,29 @@ export class UsersService {
     await this.userRepository.remove(user);
   }
 
-  async assignCompanyRole(
-    userId: string,
-    assignRoleDto: AssignCompanyRoleDto,
-  ): Promise<UserCompanyRole> {
-    const user = await this.findOne(userId);
-
-    // Verifica se o usuário já tem um papel nesta empresa
-    const existingRole = await this.userCompanyRoleRepository.findOne({
-      where: {
-        user: { id: userId },
-        company: { id: assignRoleDto.companyId },
-      },
-    });
-
-    if (existingRole) {
-      throw new ConflictException('Usuário já possui um papel nesta empresa');
-    }
-
-    const userCompanyRole = new UserCompanyRole();
-    userCompanyRole.user = user;
-    userCompanyRole.company = { id: assignRoleDto.companyId } as any;
-    userCompanyRole.role = assignRoleDto.role;
-    userCompanyRole.status = assignRoleDto.status;
-
-    return await this.userCompanyRoleRepository.save(userCompanyRole);
+  async validatePassword(
+    plainPassword: string,
+    hashedPassword: string,
+  ): Promise<boolean> {
+    return await bcrypt.compare(plainPassword, hashedPassword);
   }
 
-  async removeCompanyRole(userId: string, roleId: string): Promise<void> {
-    const userCompanyRole = await this.userCompanyRoleRepository.findOne({
-      where: {
-        id: roleId,
-        user: { id: userId },
-      },
-    });
-
-    if (!userCompanyRole) {
-      throw new NotFoundException(`Papel não encontrado para este usuário`);
-    }
-
-    await this.userCompanyRoleRepository.remove(userCompanyRole);
-  }
-
-  async getUserCompanyRoles(userId: string): Promise<UserCompanyRole[]> {
-    const roles = await this.userCompanyRoleRepository.find({
-      where: { user: { id: userId } },
+  async findByCompany(companyId: string): Promise<User[]> {
+    return await this.userRepository.find({
+      where: { companyId },
       relations: ['company'],
+      select: [
+        'id',
+        'name',
+        'email',
+        'phone',
+        'photoUrl',
+        'role',
+        'status',
+        'companyId',
+        'createdAt',
+        'updatedAt',
+      ],
     });
-
-    if (!roles.length) {
-      throw new NotFoundException(`Nenhum papel encontrado para este usuário`);
-    }
-
-    return roles;
-  }
-
-  async findByEmail(email: string): Promise<User[]> {
-    const users = await this.userRepository.find({
-      where: { email },
-      relations: ['companyRoles', 'companyRoles.company'],
-    });
-
-    if (!users.length) {
-      throw new NotFoundException(`Usuário com email ${email} não encontrado`);
-    }
-
-    return users;
   }
 }

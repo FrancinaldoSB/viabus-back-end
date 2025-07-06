@@ -1,59 +1,71 @@
 import {
-  Controller,
-  Get,
-  Post,
   Body,
-  Patch,
-  Param,
+  Controller,
   Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
   UseGuards,
 } from '@nestjs/common';
+import { CurrentUser } from 'src/common/decorators/current-user.decorator';
+import { Roles } from 'src/common/decorators/roles.decorator';
+import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
+import { UserRole } from 'src/core/enums/user-role.enum';
+import { JwtPayload } from '../auth/interfaces/auth.interface';
 import { CompanyService } from './company.service';
 import { CreateCompanyDto } from './dto/create-company.dto';
-import { Roles } from '../auth/decorators/roles.decorator';
-import { UserRole } from '../users/enum/user-role.enum';
+import { Company } from './entities/company.entity';
+
+export interface CreateSimpleCompanyDto {
+  name: string;
+}
 
 @Controller('companies')
-// @UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard)
 export class CompanyController {
   constructor(private readonly companyService: CompanyService) {}
 
   @Post()
-  // @UseGuards(RolesGuard)
-  @Roles(UserRole.ADMIN, UserRole.OWNER)
-  create(@Body() createCompanyDto: CreateCompanyDto) {
+  async create(@Body() createCompanyDto: CreateCompanyDto): Promise<Company> {
     return this.companyService.create(createCompanyDto);
   }
 
+  @Post('simple')
+  async createSimple(
+    @Body() body: CreateSimpleCompanyDto,
+    @CurrentUser() user: JwtPayload,
+  ): Promise<Company> {
+    return this.companyService.createSimple(body.name, user.sub);
+  }
+
   @Get()
-  findAll() {
+  findAll(): Promise<Company[]> {
     return this.companyService.findAll();
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id') id: string): Promise<Company> {
     return this.companyService.findOne(id);
   }
 
   @Get('slug/:slug')
-  findBySlug(@Param('slug') slug: string) {
+  findBySlug(@Param('slug') slug: string): Promise<Company> {
     return this.companyService.findBySlug(slug);
   }
 
   @Patch(':id')
-  // @UseGuards(RolesGuard)
   @Roles(UserRole.ADMIN, UserRole.OWNER)
   update(
     @Param('id') id: string,
     @Body() updateCompanyDto: Partial<CreateCompanyDto>,
-  ) {
+  ): Promise<Company> {
     return this.companyService.update(id, updateCompanyDto);
   }
 
   @Delete(':id')
-  // @UseGuards(RolesGuard)
   @Roles(UserRole.OWNER)
-  remove(@Param('id') id: string) {
+  remove(@Param('id') id: string): Promise<void> {
     return this.companyService.remove(id);
   }
 }
