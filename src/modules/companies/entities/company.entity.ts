@@ -1,12 +1,12 @@
+import { User } from 'src/modules/users/entities/user.entity';
 import {
-  Column,
-  Entity,
-  PrimaryGeneratedColumn,
-  OneToMany,
   BeforeInsert,
   BeforeUpdate,
+  Column,
+  Entity,
+  OneToMany,
+  PrimaryGeneratedColumn,
 } from 'typeorm';
-import { User } from 'src/modules/users/entities/user.entity';
 
 @Entity('companies')
 export class Company {
@@ -33,6 +33,22 @@ export class Company {
 
   @Column({ name: 'logo_url', type: 'varchar', length: 255, nullable: true })
   logoUrl: string;
+
+  @Column({
+    name: 'primary_color',
+    type: 'varchar',
+    length: 7,
+    default: '#3b82f6',
+  })
+  primaryColor: string;
+
+  @Column({
+    name: 'secondary_color',
+    type: 'varchar',
+    length: 7,
+    default: '#64748b',
+  })
+  secondaryColor: string;
 
   @OneToMany(() => User, (user) => user.company)
   users: User[];

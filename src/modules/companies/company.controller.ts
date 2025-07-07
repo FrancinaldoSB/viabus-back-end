@@ -63,6 +63,15 @@ export class CompanyController {
     return this.companyService.update(id, updateCompanyDto);
   }
 
+  @Patch(':id/colors')
+  @Roles(UserRole.ADMIN, UserRole.OWNER)
+  updateColors(
+    @Param('id') id: string,
+    @Body() colors: { primaryColor: string; secondaryColor: string },
+  ): Promise<Company> {
+    return this.companyService.update(id, colors);
+  }
+
   @Delete(':id')
   @Roles(UserRole.OWNER)
   remove(@Param('id') id: string): Promise<void> {

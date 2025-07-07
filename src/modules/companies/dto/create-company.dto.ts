@@ -1,4 +1,4 @@
-import { IsString, IsEmail, Length, IsOptional } from 'class-validator';
+import { IsEmail, IsOptional, IsString, Length } from 'class-validator';
 
 export class CreateCompanyDto {
   @IsString()
@@ -29,4 +29,14 @@ export class CreateCompanyDto {
   @IsOptional()
   @Length(1, 255)
   logoUrl?: string;
+
+  @IsString()
+  @IsOptional()
+  @Matches(/^#[0-9A-F]{6}$/i, { message: 'primaryColor deve ser uma cor hexadecimal válida' })
+  primaryColor?: string;
+
+  @IsString()
+  @IsOptional()
+  @Matches(/^#[0-9A-F]{6}$/i, { message: 'secondaryColor deve ser uma cor hexadecimal válida' })
+  secondaryColor?: string;
 }
