@@ -5,6 +5,7 @@ import {
   Get,
   Logger,
   Param,
+  Patch,
   Post,
   Put,
   Query,
@@ -26,7 +27,7 @@ import {
   PaginatedResponse,
   PaginationParams,
 } from '../../core/interfaces/api-response';
-import { CreateStopDto } from './dto/create-stop.dto';
+import { CreateStopDto, UpdateStopDto } from './dto/create-stop.dto';
 import { Stop } from './entities/stop.entity';
 import { StopsService } from './stop.service';
 
@@ -101,12 +102,12 @@ export class StopsController {
     });
   }
 
-  @Put(':id')
+  @Patch(':id')
   @Roles(UserRole.ADMIN, UserRole.OWNER)
   @UseCompanyFilter()
   async updateStop(
     @Param('id') id: string,
-    @Body() updateStopDto: Partial<CreateStopDto>,
+    @Body() updateStopDto: UpdateStopDto,
     @CompanyFilter() companyId: string,
   ): Promise<ApiSuccessResponse<Stop>> {
     this.logger.debug(`Updating stop ${id} for company: ${companyId}`);

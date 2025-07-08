@@ -1,10 +1,11 @@
+import { PartialType } from '@nestjs/mapped-types';
+import { Type } from 'class-transformer';
 import {
-  IsString,
   IsBoolean,
   IsOptional,
+  IsString,
   ValidateNested,
 } from 'class-validator';
-import { Type } from 'class-transformer';
 
 export class CreateAddressDto {
   @IsString()
@@ -58,3 +59,5 @@ export class CreateStopDto {
   @IsOptional()
   hasShelter?: boolean;
 }
+
+export class UpdateStopDto extends PartialType(CreateStopDto) {}

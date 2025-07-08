@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { UserRole } from '../../core/enums/user-role.enum';
 import { UsersService } from '../users/user.service';
 import { CreateCompanyDto } from './dto/create-company.dto';
 import { Company } from './entities/company.entity';
@@ -71,8 +72,11 @@ export class CompanyService {
 
     const savedCompany = await this.companyRepository.save(company);
 
-    // Atualiza o usuário para associar à empresa
-    await this.userService.update(userId, { companyId: savedCompany.id });
+    // CORREÇÃO: Atualiza o usuário para associar à empresa E definir como OWNER
+    await this.userService.update(userId, {
+      companyId: savedCompany.id,
+      role: UserRole.OWNER, // Define o criador da empresa como OWNER
+    });
 
     return savedCompany;
   }
@@ -121,5 +125,23 @@ export class CompanyService {
     }
 
     return company;
+  }
+
+  /**
+   * Método para corrigir usuários que criaram empresas mas têm role CLIENT
+   * Este método pode ser usado para corrigir dados existentes
+   */
+  async fixUserRoles(): Promise<{ fixed: number }> {
+    // Buscar usuários que têm empresa mas são CLIENT
+    const usersToFix =
+      await this.userService.findUsersWithCompanyButClientRole();
+
+    let fixed = 0;
+    for (const user of usersToFix) {
+      await this.userService.update(user.id, { role: UserRole.OWNER });
+      fixed++;
+    }
+
+    return { fixed };
   }
 }

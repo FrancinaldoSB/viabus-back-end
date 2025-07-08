@@ -4,7 +4,7 @@ import { FindManyOptions, Repository } from 'typeorm';
 import { BaseCompanyService } from '../../common/base/base-company.service';
 import { PaginationParams } from '../../core/interfaces/api-response';
 import { Address } from '../addresses/entities/address.entity';
-import { CreateStopDto } from './dto/create-stop.dto';
+import { CreateStopDto, UpdateStopDto } from './dto/create-stop.dto';
 import { Stop } from './entities/stop.entity';
 
 @Injectable()
@@ -84,7 +84,7 @@ export class StopsService extends BaseCompanyService<Stop> {
   // Método específico para atualizar parada com DTO
   async updateStop(
     id: string,
-    updateStopDto: Partial<CreateStopDto>,
+    updateStopDto: UpdateStopDto,
     companyId: string,
   ): Promise<Stop> {
     // Se há dados de endereço no DTO, atualizar o endereço primeiro

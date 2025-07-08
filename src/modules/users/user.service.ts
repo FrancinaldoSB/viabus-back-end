@@ -1,13 +1,14 @@
 import {
+  ConflictException,
   Injectable,
   NotFoundException,
-  ConflictException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { User } from './entities/user.entity';
-import { CreateUserDto } from './dto/create-user.dto';
 import * as bcrypt from 'bcrypt';
+import { IsNull, Not, Repository } from 'typeorm';
+import { UserRole } from '../../core/enums/user-role.enum';
+import { CreateUserDto } from './dto/create-user.dto';
+import { User } from './entities/user.entity';
 
 @Injectable()
 export class UsersService {
@@ -147,6 +148,32 @@ export class UsersService {
   async findByCompany(companyId: string): Promise<User[]> {
     return await this.userRepository.find({
       where: { companyId },
+      relations: ['company'],
+      select: [
+        'id',
+        'name',
+        'email',
+        'phone',
+        'photoUrl',
+        'role',
+        'status',
+        'companyId',
+        'createdAt',
+        'updatedAt',
+      ],
+    });
+  }
+
+  /**
+   * Busca usuários que têm empresa (companyId não é null) mas ainda têm role CLIENT
+   * Usado para corrigir dados de usuários que criaram empresas antes da correção
+   */
+  async findUsersWithCompanyButClientRole(): Promise<User[]> {
+    return await this.userRepository.find({
+      where: {
+        companyId: Not(IsNull()),
+        role: UserRole.CLIENT,
+      },
       relations: ['company'],
       select: [
         'id',
