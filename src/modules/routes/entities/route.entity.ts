@@ -1,13 +1,13 @@
 import {
   Column,
   Entity,
-  PrimaryGeneratedColumn,
-  OneToMany,
-  ManyToOne,
   JoinColumn,
+  ManyToOne,
+  OneToMany,
+  PrimaryGeneratedColumn,
 } from 'typeorm';
-import { RouteStop } from './route-stop.entity';
 import { Company } from '../../companies/entities/company.entity';
+import { RouteStop } from './route-stop.entity';
 
 @Entity('routes')
 export class Route {
@@ -23,7 +23,7 @@ export class Route {
   @Column({ name: 'is_active', type: 'boolean', default: true })
   isActive: boolean;
 
-  @Column({ name: 'estimated_duration', type: 'interval' })
+  @Column({ name: 'estimated_duration', type: 'varchar', length: 20 })
   estimatedDuration: string;
 
   @Column({ name: 'distance', type: 'float' })

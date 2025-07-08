@@ -1,12 +1,14 @@
+import { PartialType } from '@nestjs/mapped-types';
+import { Type } from 'class-transformer';
 import {
-  IsString,
   IsArray,
-  IsUUID,
-  ValidateNested,
+  IsBoolean,
   IsNumber,
   IsOptional,
+  IsString,
+  IsUUID,
+  ValidateNested,
 } from 'class-validator';
-import { Type } from 'class-transformer';
 
 class RouteStopDto {
   @IsUUID()
@@ -17,7 +19,7 @@ class RouteStopDto {
 
   @IsString()
   @IsOptional()
-  departureTime: string;
+  departureTime?: string;
 }
 
 export class CreateRouteDto {
@@ -33,8 +35,14 @@ export class CreateRouteDto {
   @IsNumber()
   distance: number;
 
+  @IsBoolean()
+  @IsOptional()
+  isActive?: boolean = true;
+
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => RouteStopDto)
   stops: RouteStopDto[];
 }
+
+export class UpdateRouteDto extends PartialType(CreateRouteDto) {}

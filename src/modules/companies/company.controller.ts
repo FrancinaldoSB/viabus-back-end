@@ -21,6 +21,7 @@ import {
 import { User } from '../users/entities/user.entity';
 import { CompanyService } from './company.service';
 import { CreateCompanyDto } from './dto/create-company.dto';
+import { UpdateCompanyColorsDto } from './dto/update-company-colors.dto';
 import { Company } from './entities/company.entity';
 
 @Controller('companies')
@@ -106,6 +107,26 @@ export class CompanyController {
     return ApiResponseBuilder.success(
       company,
       'Empresa atualizada com sucesso',
+    );
+  }
+
+  @Patch(':id/colors')
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.OWNER)
+  async updateColors(
+    @Param('id') id: string,
+    @Body() updateCompanyColorsDto: UpdateCompanyColorsDto,
+  ): Promise<ApiSuccessResponse<Company>> {
+    this.logger.debug(`Updating company colors ${id}`);
+
+    const company = await this.companyService.updateColors(
+      id,
+      updateCompanyColorsDto,
+    );
+
+    return ApiResponseBuilder.success(
+      company,
+      'Cores da empresa atualizadas com sucesso',
     );
   }
 
