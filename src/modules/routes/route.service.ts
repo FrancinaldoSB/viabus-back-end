@@ -2,7 +2,9 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindManyOptions, Repository } from 'typeorm';
 import { BaseCompanyService } from '../../common/base/base-company.service';
+import { CreateRouteScheduleDto } from './dto/create-route-schedule.dto';
 import { CreateRouteDto } from './dto/create-route.dto';
+import { RouteSchedule } from './entities/route-schedule.entity';
 import { RouteStop } from './entities/route-stop.entity';
 import { Route } from './entities/route.entity';
 
@@ -13,6 +15,8 @@ export class RouteService extends BaseCompanyService<Route> {
     protected readonly repository: Repository<Route>,
     @InjectRepository(RouteStop)
     private readonly routeStopRepository: Repository<RouteStop>,
+    @InjectRepository(RouteSchedule)
+    private readonly routeScheduleRepository: Repository<RouteSchedule>,
   ) {
     super(repository);
   }
@@ -23,7 +27,12 @@ export class RouteService extends BaseCompanyService<Route> {
 
   protected getDefaultFindOptions(): FindManyOptions<Route> {
     return {
-      relations: ['routeStops', 'routeStops.stop', 'routeStops.stop.address'],
+      relations: [
+        'routeStops',
+        'routeStops.stop',
+        'routeStops.stop.address',
+        'schedules',
+      ],
       order: { name: 'ASC' },
     };
   }
@@ -101,5 +110,85 @@ export class RouteService extends BaseCompanyService<Route> {
     };
 
     return this.repository.find(options);
+  }
+
+  // Métodos para gerenciar schedules
+  async createSchedule(
+    routeId: string,
+    data: CreateRouteScheduleDto,
+    companyId: string,
+  ): Promise<RouteSchedule> {
+    // Verificar se a rota pertence à empresa
+    const route = await this.findOne(routeId, companyId);
+    if (!route) {
+      throw new Error('Rota não encontrada ou não pertence à empresa');
+    }
+
+    const schedule = this.routeScheduleRepository.create({
+      ...data,
+      routeId,
+    });
+
+    return this.routeScheduleRepository.save(schedule);
+  }
+
+  async updateSchedule(
+    scheduleId: string,
+    data: Partial<CreateRouteScheduleDto>,
+    companyId: string,
+  ): Promise<RouteSchedule> {
+    const schedule = await this.routeScheduleRepository.findOne({
+      where: { id: scheduleId },
+      relations: ['route'],
+    });
+
+    if (!schedule || schedule.route.companyId !== companyId) {
+      throw new Error('Schedule não encontrado ou não pertence à empresa');
+    }
+
+    Object.assign(schedule, data);
+    return this.routeScheduleRepository.save(schedule);
+  }
+
+  async deleteSchedule(scheduleId: string, companyId: string): Promise<void> {
+    const schedule = await this.routeScheduleRepository.findOne({
+      where: { id: scheduleId },
+      relations: ['route'],
+    });
+
+    if (!schedule || schedule.route.companyId !== companyId) {
+      throw new Error('Schedule não encontrado ou não pertence à empresa');
+    }
+
+    await this.routeScheduleRepository.remove(schedule);
+  }
+
+  async updateRouteSchedules(
+    routeId: string,
+    schedules: CreateRouteScheduleDto[],
+    companyId: string,
+  ): Promise<Route> {
+    // Verificar se a rota pertence à empresa
+    const route = await this.findOne(routeId, companyId);
+    if (!route) {
+      throw new Error('Rota não encontrada ou não pertence à empresa');
+    }
+
+    // Remover schedules existentes
+    await this.routeScheduleRepository.delete({ routeId });
+
+    // Criar novos schedules
+    if (schedules.length > 0) {
+      const newSchedules = schedules.map((schedule) =>
+        this.routeScheduleRepository.create({
+          ...schedule,
+          routeId,
+        }),
+      );
+      await this.routeScheduleRepository.save(newSchedules);
+    }
+
+    // Retornar rota atualizada
+    return this.findOne(routeId, companyId);
   }
 }

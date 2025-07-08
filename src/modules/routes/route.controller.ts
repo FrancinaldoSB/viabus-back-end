@@ -7,6 +7,7 @@ import {
   Param,
   Patch,
   Post,
+  Put,
   Query,
   UseGuards,
   UseInterceptors,
@@ -26,7 +27,9 @@ import {
   PaginatedResponse,
   PaginationParams,
 } from '../../core/interfaces/api-response';
+import { CreateRouteScheduleDto } from './dto/create-route-schedule.dto';
 import { CreateRouteDto, UpdateRouteDto } from './dto/create-route.dto';
+import { RouteSchedule } from './entities/route-schedule.entity';
 import { Route } from './entities/route.entity';
 import { RouteService } from './route.service';
 
@@ -93,10 +96,7 @@ export class RoutesController {
   ): Promise<ApiSuccessResponse<Route>> {
     this.logger.debug(`Creating route with companyId: ${companyId}`);
 
-    const route = await this.routesService.create(
-      createRouteDto,
-      companyId,
-    );
+    const route = await this.routesService.create(createRouteDto, companyId);
 
     return ApiResponseBuilder.success(route, 'Rota criada com sucesso', {
       requestId: `create-route-${Date.now()}`,
@@ -149,6 +149,89 @@ export class RoutesController {
     return ApiResponseBuilder.success(
       routes,
       `${routes.length} rotas ativas encontradas`,
+    );
+  }
+
+  // Endpoints para gerenciar schedules
+  @Post(':id/schedules')
+  @Roles(UserRole.ADMIN, UserRole.OWNER)
+  @UseCompanyFilter()
+  async createSchedule(
+    @Param('id') routeId: string,
+    @Body() createScheduleDto: CreateRouteScheduleDto,
+    @CompanyFilter() companyId: string,
+  ): Promise<ApiSuccessResponse<RouteSchedule>> {
+    this.logger.debug(`Creating schedule for route ${routeId}`);
+
+    const schedule = await this.routesService.createSchedule(
+      routeId,
+      createScheduleDto,
+      companyId,
+    );
+
+    return ApiResponseBuilder.success(schedule, 'Horário criado com sucesso');
+  }
+
+  @Patch(':routeId/schedules/:scheduleId')
+  @Roles(UserRole.ADMIN, UserRole.OWNER)
+  @UseCompanyFilter()
+  async updateSchedule(
+    @Param('routeId') routeId: string,
+    @Param('scheduleId') scheduleId: string,
+    @Body() updateScheduleDto: Partial<CreateRouteScheduleDto>,
+    @CompanyFilter() companyId: string,
+  ): Promise<ApiSuccessResponse<RouteSchedule>> {
+    this.logger.debug(`Updating schedule ${scheduleId} for route ${routeId}`);
+
+    const schedule = await this.routesService.updateSchedule(
+      scheduleId,
+      updateScheduleDto,
+      companyId,
+    );
+
+    return ApiResponseBuilder.success(
+      schedule,
+      'Horário atualizado com sucesso',
+    );
+  }
+
+  @Delete(':routeId/schedules/:scheduleId')
+  @Roles(UserRole.ADMIN, UserRole.OWNER)
+  @UseCompanyFilter()
+  async deleteSchedule(
+    @Param('routeId') routeId: string,
+    @Param('scheduleId') scheduleId: string,
+    @CompanyFilter() companyId: string,
+  ): Promise<ApiSuccessResponse<{ id: string }>> {
+    this.logger.debug(`Deleting schedule ${scheduleId} for route ${routeId}`);
+
+    await this.routesService.deleteSchedule(scheduleId, companyId);
+
+    return ApiResponseBuilder.success(
+      { id: scheduleId },
+      'Horário removido com sucesso',
+    );
+  }
+
+  @Put(':id/schedules')
+  @Roles(UserRole.ADMIN, UserRole.OWNER)
+  @UseCompanyFilter()
+  async updateRouteSchedules(
+    @Param('id') routeId: string,
+    @Body() schedules: CreateRouteScheduleDto[],
+    @CompanyFilter() companyId: string,
+  ): Promise<ApiSuccessResponse<Route>> {
+    this.logger.debug(`Updating all schedules for route ${routeId}`);
+
+    const route = await this.routesService.updateRouteSchedules(
+      routeId,
+      schedules,
+      companyId,
+    );
+
+    return ApiResponseBuilder.success(
+      route,
+      'Horários atualizados com sucesso',
     );
   }
 }

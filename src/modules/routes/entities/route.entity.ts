@@ -7,6 +7,7 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Company } from '../../companies/entities/company.entity';
+import { RouteSchedule } from './route-schedule.entity';
 import { RouteStop } from './route-stop.entity';
 
 @Entity('routes')
@@ -38,4 +39,7 @@ export class Route {
 
   @OneToMany(() => RouteStop, (routeStop) => routeStop.route)
   routeStops: RouteStop[];
+
+  @OneToMany(() => RouteSchedule, (schedule) => schedule.route)
+  schedules: RouteSchedule[];
 }
