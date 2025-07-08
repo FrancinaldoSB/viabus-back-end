@@ -1,4 +1,10 @@
-import { IsEmail, IsOptional, IsString, Length } from 'class-validator';
+import {
+  IsEmail,
+  IsOptional,
+  IsString,
+  Length,
+  Matches,
+} from 'class-validator';
 
 export class CreateCompanyDto {
   @IsString()
@@ -32,11 +38,15 @@ export class CreateCompanyDto {
 
   @IsString()
   @IsOptional()
-  @Matches(/^#[0-9A-F]{6}$/i, { message: 'primaryColor deve ser uma cor hexadecimal válida' })
+  @Matches(/^#[0-9A-F]{6}$/i, {
+    message: 'primaryColor deve ser uma cor hexadecimal válida',
+  })
   primaryColor?: string;
 
   @IsString()
   @IsOptional()
-  @Matches(/^#[0-9A-F]{6}$/i, { message: 'secondaryColor deve ser uma cor hexadecimal válida' })
+  @Matches(/^#[0-9A-F]{6}$/i, {
+    message: 'secondaryColor deve ser uma cor hexadecimal válida',
+  })
   secondaryColor?: string;
 }

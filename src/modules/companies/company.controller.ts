@@ -19,6 +19,8 @@ import { Company } from './entities/company.entity';
 
 export interface CreateSimpleCompanyDto {
   name: string;
+  cnpj: string;
+  phone: string;
 }
 
 @Controller('companies')
@@ -36,7 +38,12 @@ export class CompanyController {
     @Body() body: CreateSimpleCompanyDto,
     @CurrentUser() user: JwtPayload,
   ): Promise<Company> {
-    return this.companyService.createSimple(body.name, user.sub);
+    return this.companyService.createSimple(
+      body.name,
+      body.cnpj,
+      body.phone,
+      user.sub,
+    );
   }
 
   @Get()

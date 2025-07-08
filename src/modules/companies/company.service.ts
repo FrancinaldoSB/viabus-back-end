@@ -1,13 +1,13 @@
 import {
+  BadRequestException,
   Injectable,
   NotFoundException,
-  BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Company } from './entities/company.entity';
-import { CreateCompanyDto } from './dto/create-company.dto';
 import { UsersService } from '../users/user.service';
+import { CreateCompanyDto } from './dto/create-company.dto';
+import { Company } from './entities/company.entity';
 
 @Injectable()
 export class CompanyService {
@@ -22,7 +22,12 @@ export class CompanyService {
     return await this.companyRepository.save(company);
   }
 
-  async createSimple(name: string, userId: string): Promise<Company> {
+  async createSimple(
+    name: string,
+    cnpj: string,
+    phone: string,
+    userId: string,
+  ): Promise<Company> {
     // Verifica se o usuário já tem uma empresa
     const user = await this.userService.findOne(userId);
     if (user.companyId) {
@@ -44,14 +49,23 @@ export class CompanyService {
       throw new BadRequestException('Nome de empresa já está em uso');
     }
 
-    // Cria a empresa com dados mínimos
+    // Verifica se o CNPJ já existe
+    const existingCnpj = await this.companyRepository.findOne({
+      where: { cnpj },
+    });
+
+    if (existingCnpj) {
+      throw new BadRequestException('CNPJ já está em uso');
+    }
+
+    // Cria a empresa com dados fornecidos
     const company = this.companyRepository.create({
       legalName: name,
       tradeName: name,
       slug,
-      cnpj: '00000000000000', // Placeholder - usuário pode atualizar depois
+      cnpj,
       email: user.email,
-      phone: '00000000000', // Placeholder
+      phone,
       logoUrl: '',
     });
 
