@@ -1,0 +1,86 @@
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  OneToMany,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
+import { Company } from '../../companies/entities/company.entity';
+import { Route } from '../../routes/entities/route.entity';
+import { Ticket } from '../../tickets/entities/ticket.entity';
+import { TripBus } from './trip-bus.entity';
+
+export enum TripStatus {
+  SCHEDULED = 'scheduled',
+  IN_PROGRESS = 'in_progress',
+  COMPLETED = 'completed',
+  CANCELLED = 'cancelled',
+  DELAYED = 'delayed',
+}
+
+@Entity('trips')
+export class Trip {
+  @PrimaryGeneratedColumn('uuid', { name: 'id' })
+  id: string;
+
+  @Column({ name: 'route_id', type: 'uuid' })
+  routeId: string;
+
+  @ManyToOne(() => Route, { eager: true })
+  @JoinColumn({ name: 'route_id' })
+  route: Route;
+
+  @Column({ name: 'departure_time', type: 'timestamp' })
+  departureTime: Date;
+
+  @Column({ name: 'estimated_arrival_time', type: 'timestamp' })
+  estimatedArrivalTime: Date;
+
+  @Column({ name: 'actual_departure_time', type: 'timestamp', nullable: true })
+  actualDepartureTime?: Date;
+
+  @Column({ name: 'actual_arrival_time', type: 'timestamp', nullable: true })
+  actualArrivalTime?: Date;
+
+  @Column({
+    name: 'status',
+    type: 'enum',
+    enum: TripStatus,
+    default: TripStatus.SCHEDULED,
+  })
+  status: TripStatus;
+
+  @Column({ name: 'base_price', type: 'decimal', precision: 10, scale: 2 })
+  basePrice: number;
+
+  @Column({ name: 'total_seats', type: 'int' })
+  totalSeats: number;
+
+  @Column({ name: 'available_seats', type: 'int' })
+  availableSeats: number;
+
+  @Column({ name: 'observations', type: 'text', nullable: true })
+  observations?: string;
+
+  @Column({ name: 'company_id', type: 'uuid' })
+  companyId: string;
+
+  @ManyToOne(() => Company)
+  @JoinColumn({ name: 'company_id' })
+  company: Company;
+
+  @OneToMany(() => TripBus, (tripBus) => tripBus.trip, { cascade: true })
+  tripBuses: TripBus[];
+
+  @OneToMany(() => Ticket, (ticket) => ticket.trip)
+  tickets: Ticket[];
+
+  @CreateDateColumn({ name: 'created_at' })
+  createdAt: Date;
+
+  @UpdateDateColumn({ name: 'updated_at' })
+  updatedAt: Date;
+}

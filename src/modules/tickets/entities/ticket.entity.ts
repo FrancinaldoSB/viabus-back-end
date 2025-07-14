@@ -8,6 +8,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { Company } from '../../companies/entities/company.entity';
+import { Trip } from '../../trips/entities/trip.entity';
 
 export enum TicketStatus {
   RESERVED = 'reserved',
@@ -28,6 +29,10 @@ export class Ticket {
 
   @Column({ name: 'trip_id', type: 'uuid' })
   tripId: string;
+
+  @ManyToOne(() => Trip, (trip) => trip.tickets, { eager: true })
+  @JoinColumn({ name: 'trip_id' })
+  trip: Trip;
 
   @Column({ name: 'passenger_name', type: 'varchar', length: 100 })
   passengerName: string;

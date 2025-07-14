@@ -9,6 +9,7 @@ import { DatabaseModule } from './core/database/database.module';
 import { AddressesModule } from './modules/addresses/address.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { CompanyModule } from './modules/companies/company.module';
+import { DriversModule } from './modules/drivers/driver.module';
 import { RoutesModule } from './modules/routes/route.module';
 import { StopsModule } from './modules/stops/stop.module';
 import { TicketsModule } from './modules/tickets/ticket.module';
@@ -30,6 +31,7 @@ import { UsersModule } from './modules/users/user.module';
     RoutesModule,
     TripsModule,
     TicketsModule,
+    DriversModule,
   ],
   providers: [
     // Global Exception Filters (ordem importa - específico primeiro)
