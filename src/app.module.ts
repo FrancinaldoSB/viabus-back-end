@@ -1,11 +1,12 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { APP_GUARD, APP_FILTER } from '@nestjs/core';
+import { APP_FILTER, APP_GUARD } from '@nestjs/core';
+import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
+import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { RolesGuard } from './common/guards/roles.guard';
-import { HttpExceptionFilter } from './common/filters/http-exception.filter';
-import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 import { DatabaseModule } from './core/database/database.module';
+import { AddressesModule } from './modules/addresses/address.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { CompanyModule } from './modules/companies/company.module';
 import { RoutesModule } from './modules/routes/route.module';
@@ -24,10 +25,11 @@ import { UsersModule } from './modules/users/user.module';
     AuthModule,
     CompanyModule,
     UsersModule,
-    RoutesModule,
+    AddressesModule,
     StopsModule,
-    TicketsModule,
+    RoutesModule,
     TripsModule,
+    TicketsModule,
   ],
   providers: [
     // Global Exception Filters (ordem importa - específico primeiro)
