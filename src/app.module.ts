@@ -15,6 +15,7 @@ import { StopsModule } from './modules/stops/stop.module';
 import { TicketsModule } from './modules/tickets/ticket.module';
 import { TripsModule } from './modules/trips/trip.module';
 import { UsersModule } from './modules/users/user.module';
+import { VehiclesModule } from './modules/vehicles/vehicle.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { UsersModule } from './modules/users/user.module';
     TripsModule,
     TicketsModule,
     DriversModule,
+    VehiclesModule,
   ],
   providers: [
     // Global Exception Filters (ordem importa - específico primeiro)
