@@ -1,26 +1,29 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Between, FindManyOptions, Repository } from 'typeorm';
-import { BaseCompanyService } from '../../common/base/base-company.service';
+import { BaseCompanyService } from '../../../common/base/base-company.service';
 import {
   ApiResponse,
   ApiResponseBuilder,
   PaginatedResponse,
-} from '../../core/interfaces/api-response';
-import { CreateTripDto } from './dto/create-trip.dto';
-import { QueryTripDto } from './dto/query-trip.dto';
-import { UpdateTripDto } from './dto/update-trip.dto';
-import { TripBus } from './entities/trip-bus.entity';
-import { Trip, TripStatus } from './entities/trip.entity';
-import { ITripBusResponse, ITripResponse } from './interfaces/trip.interface';
+} from '../../../core/interfaces/api-response';
+import { CreateTripDto } from '../dto/create-trip.dto';
+import { QueryTripDto } from '../dto/query-trip.dto';
+import { UpdateTripDto } from '../dto/update-trip.dto';
+import { TripVehicle } from '../entities/trip-vehicle.entity';
+import { Trip, TripStatus } from '../entities/trip.entity';
+import {
+  ITripResponse,
+  ITripVehicleResponse,
+} from '../interfaces/trip.interface';
 
 @Injectable()
 export class TripService extends BaseCompanyService<Trip> {
   constructor(
     @InjectRepository(Trip)
     protected readonly tripRepository: Repository<Trip>,
-    @InjectRepository(TripBus)
-    private readonly tripBusRepository: Repository<TripBus>,
+    @InjectRepository(TripVehicle)
+    private readonly tripVehicleRepository: Repository<TripVehicle>,
   ) {
     super(tripRepository);
   }
@@ -35,9 +38,10 @@ export class TripService extends BaseCompanyService<Trip> {
       relations: [
         'route',
         'company',
-        'tripBuses',
-        'tripBuses.primaryDriver',
-        'tripBuses.secondaryDriver',
+        'tripVehicles',
+        'tripVehicles.vehicle',
+        'tripVehicles.primaryDriver',
+        'tripVehicles.secondaryDriver',
       ],
     };
   }
@@ -81,9 +85,10 @@ export class TripService extends BaseCompanyService<Trip> {
       relations: [
         'route',
         'company',
-        'tripBuses',
-        'tripBuses.primaryDriver',
-        'tripBuses.secondaryDriver',
+        'tripVehicles',
+        'tripVehicles.vehicle',
+        'tripVehicles.primaryDriver',
+        'tripVehicles.secondaryDriver',
         'tickets',
       ],
     });
@@ -104,11 +109,8 @@ export class TripService extends BaseCompanyService<Trip> {
     createTripDto: CreateTripDto,
     companyId: string,
   ): Promise<ApiResponse<ITripResponse>> {
-    // Calcular total de assentos dos ônibus
-    const totalSeats = createTripDto.buses.reduce(
-      (sum, bus) => sum + bus.busCapacity,
-      0,
-    );
+    // Total de assentos será calculado após adicionar os veículos
+    const totalSeats = 0;
 
     const tripData = {
       ...createTripDto,
@@ -121,13 +123,13 @@ export class TripService extends BaseCompanyService<Trip> {
 
     const trip = await this.create(tripData, companyId);
 
-    // Criar os ônibus da viagem
-    for (const busDto of createTripDto.buses) {
-      const tripBus = this.tripBusRepository.create({
-        ...busDto,
+    // Criar os veículos da viagem
+    for (const vehicleDto of createTripDto.vehicles) {
+      const tripVehicle = this.tripVehicleRepository.create({
+        ...vehicleDto,
         tripId: trip.id,
       });
-      await this.tripBusRepository.save(tripBus);
+      await this.tripVehicleRepository.save(tripVehicle);
     }
 
     // Recarregar a viagem com todas as relações
@@ -238,9 +240,10 @@ export class TripService extends BaseCompanyService<Trip> {
       relations: [
         'route',
         'company',
-        'tripBuses',
-        'tripBuses.primaryDriver',
-        'tripBuses.secondaryDriver',
+        'tripVehicles',
+        'tripVehicles.vehicle',
+        'tripVehicles.primaryDriver',
+        'tripVehicles.secondaryDriver',
         'tickets',
       ],
     });
@@ -250,26 +253,31 @@ export class TripService extends BaseCompanyService<Trip> {
   }
 
   private mapToResponse(trip: Trip): ITripResponse {
-    const buses: ITripBusResponse[] =
-      trip.tripBuses?.map((bus) => ({
-        id: bus.id,
-        busPlate: bus.busPlate,
-        busModel: bus.busModel,
-        busCapacity: bus.busCapacity,
-        primaryDriver: {
-          id: bus.primaryDriver.id,
-          name: bus.primaryDriver.name,
-          licenseNumber: bus.primaryDriver.licenseNumber,
+    const vehicles: ITripVehicleResponse[] =
+      trip.tripVehicles?.map((tripVehicle) => ({
+        id: tripVehicle.id,
+        vehicle: {
+          id: tripVehicle.vehicle.id,
+          plate: tripVehicle.vehicle.plate,
+          model: tripVehicle.vehicle.model,
+          brand: tripVehicle.vehicle.brand,
+          capacity: tripVehicle.vehicle.capacity,
+          category: tripVehicle.vehicle.category,
         },
-        secondaryDriver: bus.secondaryDriver
+        primaryDriver: {
+          id: tripVehicle.primaryDriver.id,
+          name: tripVehicle.primaryDriver.name,
+          licenseNumber: tripVehicle.primaryDriver.licenseNumber,
+        },
+        secondaryDriver: tripVehicle.secondaryDriver
           ? {
-              id: bus.secondaryDriver.id,
-              name: bus.secondaryDriver.name,
-              licenseNumber: bus.secondaryDriver.licenseNumber,
+              id: tripVehicle.secondaryDriver.id,
+              name: tripVehicle.secondaryDriver.name,
+              licenseNumber: tripVehicle.secondaryDriver.licenseNumber,
             }
           : undefined,
-        isActive: bus.isActive,
-        observations: bus.observations,
+        isActive: tripVehicle.isActive,
+        observations: tripVehicle.observations,
       })) || [];
 
     return {
@@ -287,8 +295,9 @@ export class TripService extends BaseCompanyService<Trip> {
       basePrice: Number(trip.basePrice),
       totalSeats: trip.totalSeats,
       availableSeats: trip.availableSeats,
+      isAutoGenerated: trip.isAutoGenerated,
       observations: trip.observations,
-      buses,
+      vehicles,
       ticketCount: trip.tickets?.length || 0,
       createdAt: trip.createdAt,
       updatedAt: trip.updatedAt,

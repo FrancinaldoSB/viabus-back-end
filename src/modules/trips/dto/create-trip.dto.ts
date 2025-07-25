@@ -13,18 +13,10 @@ import {
 } from 'class-validator';
 import { TripStatus } from '../entities/trip.entity';
 
-export class CreateTripBusDto {
-  @IsString()
+export class CreateTripVehicleDto {
+  @IsUUID()
   @IsNotEmpty()
-  busPlate: string;
-
-  @IsString()
-  @IsNotEmpty()
-  busModel: string;
-
-  @IsNumber()
-  @Min(1)
-  busCapacity: number;
+  vehicleId: string;
 
   @IsUUID()
   @IsNotEmpty()
@@ -66,6 +58,6 @@ export class CreateTripDto {
 
   @IsArray()
   @ValidateNested({ each: true })
-  @Type(() => CreateTripBusDto)
-  buses: CreateTripBusDto[];
+  @Type(() => CreateTripVehicleDto)
+  vehicles: CreateTripVehicleDto[];
 }

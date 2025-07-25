@@ -8,28 +8,27 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { Driver } from '../../drivers/entities/driver.entity';
+import { Vehicle } from '../../vehicles/entities/vehicle.entity';
 import { Trip } from './trip.entity';
 
-@Entity('trip_buses')
-export class TripBus {
+@Entity('trip_vehicles')
+export class TripVehicle {
   @PrimaryGeneratedColumn('uuid', { name: 'id' })
   id: string;
 
   @Column({ name: 'trip_id', type: 'uuid' })
   tripId: string;
 
-  @ManyToOne(() => Trip, (trip) => trip.tripBuses)
+  @ManyToOne(() => Trip, (trip) => trip.tripVehicles)
   @JoinColumn({ name: 'trip_id' })
   trip: Trip;
 
-  @Column({ name: 'bus_plate', type: 'varchar', length: 10 })
-  busPlate: string;
+  @Column({ name: 'vehicle_id', type: 'uuid' })
+  vehicleId: string;
 
-  @Column({ name: 'bus_model', type: 'varchar', length: 50 })
-  busModel: string;
-
-  @Column({ name: 'bus_capacity', type: 'int' })
-  busCapacity: number;
+  @ManyToOne(() => Vehicle, { eager: true })
+  @JoinColumn({ name: 'vehicle_id' })
+  vehicle: Vehicle;
 
   @Column({ name: 'primary_driver_id', type: 'uuid' })
   primaryDriverId: string;

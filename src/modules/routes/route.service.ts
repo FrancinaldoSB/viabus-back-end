@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { FindManyOptions, Repository } from 'typeorm';
 import { BaseCompanyService } from '../../common/base/base-company.service';
 import { CreateRouteScheduleDto } from './dto/create-route-schedule.dto';
-import { CreateRouteDto } from './dto/create-route.dto';
+import { CreateRouteDto, UpdateRouteDto } from './dto/create-route.dto';
 import { RouteSchedule } from './entities/route-schedule.entity';
 import { RouteStop } from './entities/route-stop.entity';
 import { Route } from './entities/route.entity';
@@ -61,45 +61,68 @@ export class RouteService extends BaseCompanyService<Route> {
     return this.repository.findAndCount(findOptions);
   }
 
-  // Sobrescrever o método create para lidar com route_stops
+  // Método de criação específico que lida com as paradas
   async create(data: CreateRouteDto, companyId: string): Promise<Route> {
-    if (!companyId) {
-      throw new Error('Usuário não possui empresa associada');
-    }
-
-    this.logger.debug(
-      `Criando ${this.getEntityName()} para empresa: ${companyId}`,
-    );
-
-    // Extrair stops do data
     const { stops, ...routeData } = data;
 
-    // Criar a route primeiro
+    // Criar a rota
     const route = this.repository.create({
       ...routeData,
       companyId,
-    } as Route);
+    });
 
     const savedRoute = await this.repository.save(route);
 
-    // Criar route_stops se existirem
+    // Criar as paradas se existirem
     if (stops && stops.length > 0) {
       const routeStops = stops.map((stop) =>
         this.routeStopRepository.create({
+          ...stop,
           routeId: savedRoute.id,
-          stopId: stop.stopId,
-          order: stop.order,
-          departureTime: stop.departureTime,
         }),
       );
 
       await this.routeStopRepository.save(routeStops);
-
-      // Recarregar a route com as relações
-      return this.findOne(savedRoute.id, companyId);
     }
 
-    return savedRoute;
+    return this.findOne(savedRoute.id, companyId);
+  }
+
+  // Método de atualização específico que lida com as paradas
+  async update(
+    id: string,
+    data: UpdateRouteDto,
+    companyId: string,
+  ): Promise<Route> {
+    // Verificar se a rota existe e pertence à empresa
+    const existingRoute = await this.findOne(id, companyId);
+
+    const { stops, ...routeData } = data;
+
+    // Atualizar dados básicos da rota
+    Object.assign(existingRoute, routeData);
+    await this.repository.save(existingRoute);
+
+    // Se stops foi fornecido, atualizar as paradas
+    if (stops) {
+      // Remover paradas existentes
+      await this.routeStopRepository.delete({ routeId: id });
+
+      // Criar novas paradas
+      if (stops.length > 0) {
+        const newRouteStops = stops.map((stop) =>
+          this.routeStopRepository.create({
+            ...stop,
+            routeId: id,
+          }),
+        );
+
+        await this.routeStopRepository.save(newRouteStops);
+      }
+    }
+
+    // Retornar rota atualizada com todas as relações
+    return this.findOne(id, companyId);
   }
 
   // Método específico para buscar rotas ativas

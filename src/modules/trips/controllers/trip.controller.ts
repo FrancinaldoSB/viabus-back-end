@@ -11,14 +11,14 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import { TripService } from './trip.service';
-import { CreateTripDto } from './dto/create-trip.dto';
-import { UpdateTripDto } from './dto/update-trip.dto';
-import { QueryTripDto } from './dto/query-trip.dto';
-import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
-import { CompanyFilter } from '../../common/decorators/company-filter.decorator';
-import { ApiResponse, PaginatedResponse } from '../../core/interfaces/api-response';
-import { ITripResponse } from './interfaces/trip.interface';
+import { TripService } from '../services/trip.service';
+import { CreateTripDto } from '../dto/create-trip.dto';
+import { UpdateTripDto } from '../dto/update-trip.dto';
+import { QueryTripDto } from '../dto/query-trip.dto';
+import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
+import { CompanyFilter } from '../../../common/decorators/company-filter.decorator';
+import { ApiResponse, PaginatedResponse } from '../../../core/interfaces/api-response';
+import { ITripResponse } from '../interfaces/trip.interface';
 
 @Controller('trips')
 @UseGuards(JwtAuthGuard)
