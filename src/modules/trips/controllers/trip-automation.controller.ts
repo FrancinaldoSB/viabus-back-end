@@ -278,12 +278,21 @@ export class TripAutomationController {
       // Criar o ticket
       const ticketResponse = await this.ticketService.createTicket(ticketData, companyId);
 
+      // Verificar se o ticket foi criado com sucesso
+      if (!ticketResponse.success) {
+        return ApiResponseBuilder.error(
+          ApiErrorCode.INTERNAL_ERROR,
+          'Erro ao criar ticket',
+          ticketResponse,
+        );
+      }
+
       // Atualizar contagem de assentos da viagem
       await this.tripAutomationService.updateTripSeats(trip.id);
 
       return ApiResponseBuilder.success(
         {
-          ticket: ticketResponse.data,
+          ticket: (ticketResponse as any).data,
           trip: {
             id: trip.id,
             routeName: route.name,
