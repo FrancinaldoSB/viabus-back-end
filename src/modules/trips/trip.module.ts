@@ -4,6 +4,7 @@ import { RouteSchedule } from '../routes/entities/route-schedule.entity';
 import { RouteStop } from '../routes/entities/route-stop.entity';
 import { Route } from '../routes/entities/route.entity';
 import { RoutesModule } from '../routes/route.module';
+import { TicketsModule } from '../tickets/ticket.module';
 import { TripAutomationController } from './controllers/trip-automation.controller';
 import { TripVehicle } from './entities/trip-vehicle.entity';
 import { Trip } from './entities/trip.entity';
@@ -21,7 +22,8 @@ import { TripAutomationService } from './services/trip-automation.service';
       Route,
       RouteStop,
     ]),
-    RoutesModule,
+          RoutesModule,
+      TicketsModule,
   ],
   controllers: [TripController, TripAutomationController],
   providers: [TripService, TripAutomationService],
