@@ -117,9 +117,12 @@ export class TripAutomationService {
       throw new Error(`Nenhuma parada encontrada para a rota ${routeId}`);
     }
 
-    // Validar horário: aceita se o horário da parada corresponde OU se a parada não tem horário definido
-    const stopDepartureTime = firstStop.departureTime || '08:00';
-    if (stopDepartureTime !== departureTime) {
+    // Validar horário: usa o horário da parada ou permite o horário solicitado se a parada não tem horário definido
+    const stopDepartureTime = firstStop.departureTime;
+    const finalDepartureTime = stopDepartureTime || departureTime;
+    
+    // Se a parada tem horário definido, deve corresponder ao solicitado
+    if (stopDepartureTime && stopDepartureTime !== departureTime) {
       throw new Error(
         `Horário ${departureTime} não corresponde ao horário da primeira parada (${stopDepartureTime}) da rota ${routeId}`,
       );
@@ -132,7 +135,7 @@ export class TripAutomationService {
     });
 
     // Calcula horários de partida e chegada
-    const departureDateTime = new Date(`${travelDate}T${departureTime}:00`);
+    const departureDateTime = new Date(`${travelDate}T${finalDepartureTime}:00`);
     const estimatedArrivalDateTime = lastStop?.departureTime
       ? new Date(`${travelDate}T${lastStop.departureTime}:00`)
       : new Date(departureDateTime.getTime() + 2 * 60 * 60 * 1000); // Default: +2 horas
@@ -241,18 +244,22 @@ export class TripAutomationService {
       throw new Error(`Viagem com ID ${tripId} não encontrada`);
     }
 
-    // Calcula total de assentos baseado nos veículos
-    const totalSeats = trip.tripVehicles
-      .filter((tv) => tv.isActive)
-      .reduce((sum, tv) => sum + tv.vehicle.capacity, 0);
+    // Calcula total de assentos baseado nos veículos (se houver veículos configurados)
+    const totalSeats = trip.tripVehicles?.length > 0 
+      ? trip.tripVehicles
+          .filter((tv) => tv.isActive)
+          .reduce((sum, tv) => sum + (tv.vehicle?.capacity || 0), 0)
+      : 0;
 
-    // Calcula assentos ocupados baseado nos tickets confirmados
-    const occupiedSeats = trip.tickets.filter(
+    // Calcula assentos ocupados baseado nos tickets confirmados e reservados
+    const occupiedSeats = trip.tickets?.filter(
       (ticket) => ticket.status === 'confirmed' || ticket.status === 'reserved',
-    ).length;
+    ).length || 0;
 
+    // Se não há veículos configurados ainda, mantém a lógica atual
+    // mas permite que tickets sejam criados mesmo sem definir capacidade
     trip.totalSeats = totalSeats;
-    trip.availableSeats = totalSeats - occupiedSeats;
+    trip.availableSeats = totalSeats > 0 ? totalSeats - occupiedSeats : 999; // Valor alto para viagens sem veículos ainda
 
     await this.tripRepository.save(trip);
   }
