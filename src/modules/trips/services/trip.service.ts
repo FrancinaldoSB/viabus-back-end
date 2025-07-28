@@ -109,14 +109,18 @@ export class TripService extends BaseCompanyService<Trip> {
     createTripDto: CreateTripDto,
     companyId: string,
   ): Promise<ApiResponse<ITripResponse>> {
-    // Total de assentos será calculado após adicionar os veículos
-    const totalSeats = 0;
+    // Calcular total de assentos baseado nos veículos fornecidos
+    const totalSeats = createTripDto.vehicles.reduce((total, vehicleDto) => {
+      // Precisamos buscar a capacidade do veículo
+      // Por enquanto, vamos usar 0 e recalcular depois
+      return total;
+    }, 0);
 
     const tripData = {
       ...createTripDto,
       companyId,
-      totalSeats,
-      availableSeats: totalSeats,
+      totalSeats: 0, // Será recalculado após adicionar os veículos
+      availableSeats: 0,
       departureTime: new Date(createTripDto.departureTime),
       estimatedArrivalTime: new Date(createTripDto.estimatedArrivalTime),
     };
@@ -131,6 +135,9 @@ export class TripService extends BaseCompanyService<Trip> {
       });
       await this.tripVehicleRepository.save(tripVehicle);
     }
+
+    // Recalcular total de assentos baseado nos veículos criados
+    await this._recalculateSeats(trip.id, companyId);
 
     // Recarregar a viagem com todas as relações
     const savedTrip = await this.findOne(trip.id, companyId);
@@ -166,7 +173,28 @@ export class TripService extends BaseCompanyService<Trip> {
     }
 
     const trip = await this.update(id, updateData, companyId);
-    const data = this.mapToResponse(trip);
+
+    // Se veículos foram fornecidos, atualizar os veículos da viagem
+    if (updateTripDto.vehicles) {
+      // Remover veículos existentes
+      await this.tripVehicleRepository.delete({ tripId: id });
+
+      // Criar os novos veículos da viagem
+      for (const vehicleDto of updateTripDto.vehicles) {
+        const tripVehicle = this.tripVehicleRepository.create({
+          ...vehicleDto,
+          tripId: id,
+        });
+        await this.tripVehicleRepository.save(tripVehicle);
+      }
+
+      // Recalcular total de assentos baseado nos veículos atribuídos
+      await this._recalculateSeats(id, companyId);
+    }
+
+    // Recarregar a viagem com todas as relações
+    const savedTrip = await this.findOne(id, companyId);
+    const data = this.mapToResponse(savedTrip);
     return ApiResponseBuilder.success(data, 'Viagem atualizada com sucesso');
   }
 
@@ -250,6 +278,44 @@ export class TripService extends BaseCompanyService<Trip> {
 
     const data: ITripResponse[] = trips.map(this.mapToResponse.bind(this));
     return ApiResponseBuilder.success(data);
+  }
+
+  async recalculateSeats(
+    id: string,
+    companyId: string,
+  ): Promise<ApiResponse<ITripResponse>> {
+    await this._recalculateSeats(id, companyId);
+    const trip = await this.findOne(id, companyId);
+    const data = this.mapToResponse(trip);
+    return ApiResponseBuilder.success(
+      data,
+      'Assentos recalculados com sucesso',
+    );
+  }
+
+  private async _recalculateSeats(
+    tripId: string,
+    companyId: string,
+  ): Promise<void> {
+    const trip = await this.tripRepository.findOne({
+      where: { id: tripId, companyId },
+      relations: ['tripVehicles', 'tripVehicles.vehicle', 'tickets'],
+    });
+
+    if (trip) {
+      const totalSeats = trip.tripVehicles.reduce(
+        (total, tripVehicle) => total + tripVehicle.vehicle.capacity,
+        0,
+      );
+
+      const ticketCount = trip.tickets?.length || 0;
+      const availableSeats = Math.max(0, totalSeats - ticketCount);
+
+      await this.tripRepository.update(tripId, {
+        totalSeats,
+        availableSeats,
+      });
+    }
   }
 
   private mapToResponse(trip: Trip): ITripResponse {
