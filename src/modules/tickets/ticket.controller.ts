@@ -17,7 +17,10 @@ import {
   ApiResponse,
   PaginatedResponse,
 } from '../../core/interfaces/api-response';
-import { CreateTicketDto } from './dto/create-ticket.dto';
+import {
+  CreateTicketByRouteDto,
+  CreateTicketDto,
+} from './dto/create-ticket.dto';
 import { QueryTicketDto } from './dto/query-ticket.dto';
 import { UpdateTicketDto } from './dto/update-ticket.dto';
 import { ITicketResponse } from './interfaces/ticket.interface.dto';
@@ -35,6 +38,15 @@ export class TicketController {
     @CompanyFilter() companyId: string,
   ): Promise<ApiResponse<ITicketResponse>> {
     return this.ticketService.createTicket(createTicketDto, companyId);
+  }
+
+  @Post('schedule-by-route')
+  @HttpCode(HttpStatus.CREATED)
+  async scheduleByRoute(
+    @Body() createTicketDto: CreateTicketByRouteDto,
+    @CompanyFilter() companyId: string,
+  ): Promise<ApiResponse<ITicketResponse>> {
+    return this.ticketService.createTicketByRoute(createTicketDto, companyId);
   }
 
   @Get()

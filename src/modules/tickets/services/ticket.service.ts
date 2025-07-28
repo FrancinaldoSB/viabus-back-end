@@ -1,30 +1,32 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Between, FindManyOptions, Like, Repository } from 'typeorm';
-import { BaseCompanyService } from '../../common/base/base-company.service';
+import { BaseCompanyService } from '../../../common/base/base-company.service';
 import {
   ApiResponse,
   ApiResponseBuilder,
   PaginatedResponse,
-} from '../../core/interfaces/api-response';
-import { TripAutomationService } from '../trips/services/trip-automation.service';
+} from '../../../core/interfaces/api-response';
+import { TripAutomationService } from '../../trips/services/trip-automation.service';
 import {
   CreateTicketByRouteDto,
   CreateTicketDto,
-} from './dto/create-ticket.dto';
-import { QueryTicketDto } from './dto/query-ticket.dto';
-import { UpdateTicketDto } from './dto/update-ticket.dto';
-import { Ticket, TicketStatus } from './entities/ticket.entity';
+} from '../dto/create-ticket.dto';
+import { QueryTicketDto } from '../dto/query-ticket.dto';
+import { UpdateTicketDto } from '../dto/update-ticket.dto';
+import { Ticket, TicketStatus } from '../entities/ticket.entity';
 import {
   ITicketLocation,
   ITicketResponse,
-} from './interfaces/ticket.interface.dto';
+} from '../interfaces/ticket.interface.dto';
+import { BookingService } from './booking.service';
 
 @Injectable()
 export class TicketService extends BaseCompanyService<Ticket> {
   constructor(
     @InjectRepository(Ticket)
     protected readonly ticketRepository: Repository<Ticket>,
+    private readonly bookingService: BookingService,
     private readonly tripAutomationService: TripAutomationService,
   ) {
     super(ticketRepository);
@@ -173,7 +175,7 @@ export class TicketService extends BaseCompanyService<Ticket> {
     companyId: string,
   ): Promise<ApiResponse<ITicketResponse>> {
     try {
-      // Buscar ou criar viagem para a rota, data e horário
+      // Buscar ou criar viagem usando TripAutomationService
       const trip = await this.tripAutomationService.findOrCreateTrip(
         createTicketDto.routeId,
         createTicketDto.travelDate,
@@ -188,8 +190,8 @@ export class TicketService extends BaseCompanyService<Ticket> {
         );
       }
 
-      // Criar o ticket usando a viagem encontrada/criada
-      const ticketData: CreateTicketDto = {
+      // Criar o ticket
+      const ticketData = {
         tripId: trip.id,
         passengerName: createTicketDto.passengerName,
         passengerDocument: createTicketDto.passengerDocument,
@@ -210,14 +212,21 @@ export class TicketService extends BaseCompanyService<Ticket> {
         landingLatitude: createTicketDto.landingLatitude,
         landingLongitude: createTicketDto.landingLongitude,
         observations: createTicketDto.observations,
+        companyId,
       };
 
-      const ticket = await this.createTicket(ticketData, companyId);
-      return ticket;
+      const ticket = await this.ticketRepository.save(ticketData);
+
+      const data = this.mapToResponse(ticket);
+
+      return ApiResponseBuilder.success(data, 'Passagem agendada com sucesso!');
     } catch (error) {
+      console.error('❌ TicketService: Erro em createTicketByRoute:', error);
+      console.error('❌ TicketService: Stack trace:', error.stack);
       return ApiResponseBuilder.error(
         'INTERNAL_ERROR',
-        'Erro interno ao criar agendamento',
+        'Erro interno ao processar agendamento',
+        error.message,
       );
     }
   }
