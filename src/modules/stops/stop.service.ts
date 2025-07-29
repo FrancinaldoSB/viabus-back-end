@@ -129,8 +129,8 @@ export class StopsService extends BaseCompanyService<Stop> {
         return false;
       }
 
-      const lat1 = parseFloat(stop.address.latitude);
-      const lng1 = parseFloat(stop.address.longitude);
+      const lat1 = stop.address.latitude;
+      const lng1 = stop.address.longitude;
       const distance = this.calculateDistance(latitude, longitude, lat1, lng1);
 
       return distance <= radiusKm;

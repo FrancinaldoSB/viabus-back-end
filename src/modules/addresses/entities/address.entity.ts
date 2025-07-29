@@ -27,11 +27,11 @@ export class Address {
   @Column({ name: 'state', type: 'varchar', length: 2 })
   state: string;
 
-  @Column({ name: 'longitude', type: 'varchar', length: 100, nullable: true })
-  longitude?: string;
+  @Column({ name: 'longitude', type: 'decimal', precision: 10, scale: 8, nullable: true })
+  longitude?: number;
 
-  @Column({ name: 'latitude', type: 'varchar', length: 100, nullable: true })
-  latitude?: string;
+  @Column({ name: 'latitude', type: 'decimal', precision: 10, scale: 8, nullable: true })
+  latitude?: number;
 
   @Column({ name: 'created_at', type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;

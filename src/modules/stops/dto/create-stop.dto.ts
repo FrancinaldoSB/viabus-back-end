@@ -1,10 +1,11 @@
 import { PartialType } from '@nestjs/mapped-types';
 import { Type } from 'class-transformer';
 import {
-  IsBoolean,
-  IsOptional,
-  IsString,
-  ValidateNested,
+    IsBoolean,
+    IsNumber,
+    IsOptional,
+    IsString,
+    ValidateNested
 } from 'class-validator';
 
 export class CreateAddressDto {
@@ -30,13 +31,13 @@ export class CreateAddressDto {
   @IsString()
   state: string;
 
-  @IsString()
+  @IsNumber()
   @IsOptional()
-  latitude?: string;
+  latitude?: number;
 
-  @IsString()
+  @IsNumber()
   @IsOptional()
-  longitude?: string;
+  longitude?: number;
 }
 
 export class CreateStopDto {
