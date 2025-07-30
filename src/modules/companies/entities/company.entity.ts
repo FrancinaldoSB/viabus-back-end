@@ -34,22 +34,6 @@ export class Company {
   @Column({ name: 'logo_url', type: 'varchar', length: 255, nullable: true })
   logoUrl: string;
 
-  @Column({
-    name: 'primary_color',
-    type: 'varchar',
-    length: 7,
-    default: '#3b82f6',
-  })
-  primaryColor: string;
-
-  @Column({
-    name: 'secondary_color',
-    type: 'varchar',
-    length: 7,
-    default: '#64748b',
-  })
-  secondaryColor: string;
-
   @OneToMany(() => User, (user) => user.company)
   users: User[];
 

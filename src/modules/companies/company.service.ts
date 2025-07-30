@@ -8,7 +8,6 @@ import { Repository } from 'typeorm';
 import { UserRole } from '../../core/enums/user-role.enum';
 import { UsersService } from '../users/user.service';
 import { CreateCompanyDto } from './dto/create-company.dto';
-import { UpdateCompanyColorsDto } from './dto/update-company-colors.dto';
 import { Company } from './entities/company.entity';
 
 @Injectable()
@@ -107,15 +106,6 @@ export class CompanyService {
   ): Promise<Company> {
     const company = await this.findOne(id);
     Object.assign(company, updateCompanyDto);
-    return await this.companyRepository.save(company);
-  }
-
-  async updateColors(
-    id: string,
-    updateCompanyColorsDto: UpdateCompanyColorsDto,
-  ): Promise<Company> {
-    const company = await this.findOne(id);
-    Object.assign(company, updateCompanyColorsDto);
     return await this.companyRepository.save(company);
   }
 
