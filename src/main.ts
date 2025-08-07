@@ -15,7 +15,7 @@ async function bootstrap() {
   app.use(morgan(':method :url :status :response-time ms - :body'));
 
   app.enableCors({
-    origin: true,
+    origin: configService.get<string>('CORS_ORIGIN'),
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
   });
