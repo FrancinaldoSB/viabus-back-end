@@ -1,0 +1,51 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: viabus-db-migration
+  labels:
+    app: viabus-migration
+spec:
+  template:
+    metadata:
+      labels:
+        app: viabus-migration
+    spec:
+      restartPolicy: Never
+      # Init container para aguardar PostgreSQL
+      initContainers:
+      - name: wait-for-postgres
+        image: postgres:15-alpine
+        command: 
+        - sh
+        - -c
+        - |
+          until pg_isready -h postgres-service -p 5432 -U postgres; do
+            echo "Aguardando PostgreSQL ficar pronto para migrações..."
+            sleep 2
+          done
+          echo "PostgreSQL está pronto para migrações!"
+        env:
+        - name: PGPASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: postgres-secret
+              key: POSTGRES_PASSWORD
+      containers:
+      - name: migrate
+        image: viabus-api:latest
+        imagePullPolicy: Never
+        command: ["node_modules/.bin/typeorm"]
+        args: ["migration:run", "-d", "dist/core/database/typeorm.config.js"]
+        envFrom:
+        - configMapRef:
+            name: viabus-api-config
+        - secretRef:
+            name: viabus-api-secrets
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+  backoffLimit: 3

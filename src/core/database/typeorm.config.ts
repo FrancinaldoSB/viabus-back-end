@@ -17,7 +17,7 @@ const dataSourceOptions: DataSourceOptions = {
   entities: [__dirname + '/../**/*.entity{.ts,.js}'],
   migrations: [__dirname + '/migrations/*{.ts,.js}'],
   synchronize: false,
-  ssl: nodeEnv === 'production' ? { rejectUnauthorized: false } : undefined,
+  ssl: configService.get<string>('DB_SSL') === 'true' ? { rejectUnauthorized: false } : false,
 };
 
 export default new DataSource(dataSourceOptions);

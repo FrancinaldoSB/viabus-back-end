@@ -1,0 +1,100 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: viabus-api
+  labels:
+    app: viabus-api
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: viabus-api
+  template:
+    metadata:
+      labels:
+        app: viabus-api
+    spec:
+      # Init container para aguardar PostgreSQL
+      initContainers:
+      - name: wait-for-postgres
+        image: postgres:15-alpine
+        command: 
+        - sh
+        - -c
+        - |
+          until pg_isready -h postgres-service -p 5432 -U postgres; do
+            echo "Aguardando PostgreSQL ficar pronto..."
+            sleep 2
+          done
+          echo "PostgreSQL está pronto!"
+        env:
+        - name: PGPASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: postgres-secret
+              key: POSTGRES_PASSWORD
+      containers:
+      - name: viabus-api
+        image: viabus-api:latest
+        imagePullPolicy: Never  # Para usar imagens locais no Minikube
+        ports:
+        - containerPort: 4000
+        envFrom:
+        - configMapRef:
+            name: viabus-api-config
+        - secretRef:
+            name: viabus-api-secrets
+        # Aguardar antes do primeiro health check
+        startupProbe:
+          httpGet:
+            path: /v1/health
+            port: 4000
+          initialDelaySeconds: 30
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 12  # 60 segundos total
+        livenessProbe:
+          httpGet:
+            path: /v1/health
+            port: 4000
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /v1/health
+            port: 4000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1001
+          readOnlyRootFilesystem: false
+          allowPrivilegeEscalation: false
+      restartPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: viabus-api-service
+  labels:
+    app: viabus-api
+spec:
+  type: ClusterIP
+  ports:
+  - port: 4000
+    targetPort: 4000
+    protocol: TCP
+    name: http
+  selector:
+    app: viabus-api

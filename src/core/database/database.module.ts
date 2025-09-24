@@ -17,12 +17,9 @@ import { TypeOrmModule } from '@nestjs/typeorm';
           entities: [__dirname + '/../../**/*.entity{.ts,.js}'],
           migrations: [__dirname + '/migrations/*{.ts,.js}'],
           synchronize: true,
-          ssl:
-            configService.get<string>('NODE_ENV') === 'production'
-              ? {
-                  rejectUnauthorized: false,
-                }
-              : undefined,
+          ssl: configService.get<string>('DB_SSL') === 'true' 
+            ? { rejectUnauthorized: false } 
+            : false,
         };
       },
       inject: [ConfigService],
